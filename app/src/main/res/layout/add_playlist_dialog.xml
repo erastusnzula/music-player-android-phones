@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="10dp"
+        app:startIconDrawable="@drawable/ic_baseline_playlist_play_24"
+        app:startIconTint="@color/teal_200">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/playlistEntername"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="Playlist Name"
+            android:inputType="text"
+            android:maxLength="40"
+            android:singleLine="true"
+            app:boxStrokeColor="@color/teal_200" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="10dp"
+        app:startIconDrawable="@drawable/ic_baseline_playlist_play_24"
+        app:startIconTint="@color/teal_200">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/playlistOwner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your Name"
+            android:inputType="text"
+            android:maxLength="40"
+            android:singleLine="true"
+            app:startIconDrawable="@menu/playlist_menu" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+</LinearLayout>

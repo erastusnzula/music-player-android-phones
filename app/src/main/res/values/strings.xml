@@ -1,10 +1,10 @@
 <resources>
-    <string name="app_name">EMU-Music Player</string>
+    <string name="app_name">Music Player</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
-    <string name="active_song_name">Jame Paul - Umeinuliwa juu</string>
+    <string name="active_song_name">Empty</string>
     <string name="active_song_start">00 : 00</string>
-    <string name="active_song_end">03 : 00</string>
+    <string name="active_song_end">00 : 00</string>
     <string name="single_song_name">Hey, soul sister - Train</string>
     <string name="single_album_name">Train Album</string>
     <string name="single_total_length">00 : 00</string>
@@ -14,7 +14,18 @@
     <string name="nav_playlists">Playlists</string>
     <string name="nav_favourites">Favourites</string>
     <string name="favourite_menu_playlist">playlist</string>
-    <string name="main_menu_Favourite">Favourite</string>
-    <string name="main_menu_Playlist">Playlist</string>
+    <string name="main_menu_Favourite">Favourite songs</string>
+    <string name="main_menu_Playlist">Playlists</string>
     <string name="playlist_menu_favourite">favorite</string>
+    <string name="album_zero">Unknown</string>
+    <string name="main_menu_refresh">Refresh</string>
+    <string name="main_total_songs">0</string>
+    <string name="active_main_song">Empty</string>
+    <string name="stop_in_10_minutes">10 minutes</string>
+    <string name="stop_in_20_minutes">20 minutes</string>
+    <string name="stop_in_30_minutes">30 minutes</string>
+    <string name="stop_in_40_minutes">40 minutes</string>
+    <string name="stop_in_50_minutes">50 minutes</string>
+    <string name="stop_in_1_hour">1 hour</string>
+    <string name="song_search">Search</string>
 </resources>

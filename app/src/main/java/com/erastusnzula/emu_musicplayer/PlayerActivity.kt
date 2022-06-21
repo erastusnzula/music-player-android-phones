@@ -2,29 +2,26 @@ package com.erastusnzula.emu_musicplayer
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.audiofx.AudioEffect
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.snackbar.Snackbar
-import kotlin.system.exitProcess
 
 class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCompletionListener {
     companion object {
@@ -34,13 +31,14 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         var isLooping: Boolean = false
         var newSongOnclick: Boolean = false
         var musicService: MusicService? = null
-        var currentPos = 0
         var isPlayerActive = false
         var isShuffle = false
-        var minutes5 = false
-        var minutes10 = false
-        var minutes15= false
-        var minutes20 = false
+        var isTimerSet = false
+        var currentPlayingID: String = ""
+        var isFavourite = false
+        var favouriteIndex = -1
+        var audioContinue = false
+        var playingFromFavourite = false
 
         @SuppressLint("StaticFieldLeak")
         lateinit var activePlayButton: ImageView
@@ -69,21 +67,23 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         @SuppressLint("StaticFieldLeak")
         lateinit var repeatImageButton: ImageButton
 
+        @SuppressLint("StaticFieldLeak")
+        lateinit var favouriteImageButton: ImageButton
+
     }
 
     private lateinit var nextSong: ImageButton
     private lateinit var previousSong: ImageButton
     private lateinit var equalizer: ImageButton
-    private lateinit var timer : ImageButton
+    private lateinit var timer: ImageButton
+    private lateinit var shareImageButton: ImageButton
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_EMUMusicPlayer)
         setContentView(R.layout.activity_player)
-        val intent = Intent(this, MusicService::class.java)
-        bindService(intent, this, BIND_AUTO_CREATE)
-        startService(intent)
+
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Current playing"
@@ -100,6 +100,8 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         seekBar = findViewById(R.id.seekBar)
         equalizer = findViewById(R.id.activeEqualizerImageButton)
         timer = findViewById(R.id.activeTimerImageButton)
+        shareImageButton = findViewById(R.id.activeShareImageButton)
+        favouriteImageButton = findViewById(R.id.fav)
         setUpInitialization()
 
 
@@ -121,19 +123,16 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         repeatImageButton.setOnClickListener {
             repeatControl()
         }
+        shareImageButton.setOnClickListener { shareMusicFile() }
         timer.setOnClickListener {
-            val setTime = minutes5 || minutes10|| minutes15|| minutes20
-            if(!setTime){
+            if (!isTimerSet) {
                 closeAppTimer()
-            }else{
+            } else {
                 val dialog = AlertDialog.Builder(this)
-                dialog.setTitle("Cancel end music timer?")
-                dialog.setPositiveButton("Yes"){_,_->
-                    minutes5=false
-                    minutes10=false
-                    minutes20=false
-                    minutes15=false
-                    timer.setColorFilter(ContextCompat.getColor(this,R.color.teal_200))
+                dialog.setTitle("Cancel music timer?")
+                dialog.setPositiveButton("Yes") { _, _ ->
+                    isTimerSet = false
+                    timer.setColorFilter(ContextCompat.getColor(this, R.color.teal_200))
                 }
                 dialog.show()
             }
@@ -152,27 +151,34 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
 
         })
 
+        favouriteImageButton.setOnClickListener {
+            try {
+                if (isFavourite) {
+                    isFavourite = false
+                    favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+                    FavouriteActivity.favouriteSongsList.remove(musicList[songPosition])
+                } else {
+                    isFavourite = true
+                    favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+                    FavouriteActivity.favouriteSongsList.add(musicList[songPosition])
+                    Toast.makeText(this, "Successfully added to favourites",Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                return@setOnClickListener
+            }
+
+        }
+
 
     }
 
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
                 finish()
             }
-            R.id.favorite -> {
-                startActivity(Intent(this@PlayerActivity, FavouriteActivity::class.java))
-            }
-            R.id.playlist -> {
-                startActivity(Intent(this@PlayerActivity, PlaylistActivity::class.java))
-            }
-            R.id.about -> {}
         }
         return super.onOptionsItemSelected(item)
     }
@@ -189,6 +195,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             MainActivity.mainCurrent.setTextColor(ContextCompat.getColor(this, R.color.green))
         }
         isPlayerActive = true
+
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
@@ -235,44 +242,124 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             activeSongName.text = musicList[songPosition].title
             if (isLooping) repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_one_24)
             if (isShuffle) shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.green))
-            if(minutes5|| minutes10|| minutes15|| minutes20) timer.setColorFilter(ContextCompat.getColor(this,R.color.purple_700))
-        } catch (e: Exception) {
-            songPosition = currentPos
-            musicList.addAll(MainActivity.musicList)
-            Glide.with(this)
-                .load(musicList[songPosition].art)
-                .apply(RequestOptions().placeholder(R.drawable.ic_song_icon))
-                .into(activeAlbum)
+            if (isTimerSet) timer.setColorFilter(
+                ContextCompat.getColor(
+                    this,
+                    R.color.purple_700
+                )
+            )
+            favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
+            if (isFavourite) {
+                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+            } else {
+                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+            }
 
-            activeSongName.text = musicList[songPosition].title
-            if (isLooping) repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_one_24)
-            if (isShuffle) shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.green))
+            if (MainActivity.orientation == Configuration.ORIENTATION_LANDSCAPE){
+                albumLayout.visibility = View.GONE
+            }
 
-        }
+        } catch (e: Exception) {}
 
     }
 
     private fun setUpInitialization() {
-        songPosition = intent.getIntExtra("index", 0)
         when (intent.getStringExtra("class")) {
-            "MusicRecyclerAdapter" -> {
+            "FavouriteAdapter" -> {
+                val orientation =
+                    intent.getIntExtra("orientation", Configuration.ORIENTATION_PORTRAIT)
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    albumLayout.visibility = View.GONE
+                }
+                songPosition = intent.getIntExtra("index", 0)
+                val intent = Intent(this, MusicService::class.java)
+                bindService(intent, this, BIND_AUTO_CREATE)
+                startService(intent)
                 newSongOnclick = true
+                musicList = ArrayList()
+                musicList.addAll(FavouriteActivity.favouriteSongsList)
+                currentPlayingSongSetup()
+                fromMainActivityLayout()
+                playingFromFavourite=true
+            }
+            "MusicRecyclerAdapter" -> {
+                val orientation =
+                    intent.getIntExtra("orientation", Configuration.ORIENTATION_PORTRAIT)
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    albumLayout.visibility = View.GONE
+                }
+                songPosition = intent.getIntExtra("index", 0)
+                val intent = Intent(this, MusicService::class.java)
+                bindService(intent, this, BIND_AUTO_CREATE)
+                startService(intent)
+                newSongOnclick = true
+                musicList= ArrayList()
                 musicList.addAll(MainActivity.musicList)
                 currentPlayingSongSetup()
                 fromMainActivityLayout()
+                playingFromFavourite=false
             }
             "MainActivity" -> {
-                songPosition = currentPos
-                musicList.addAll(MainActivity.musicList)
+                val orientation =
+                    intent.getIntExtra("orientation", Configuration.ORIENTATION_PORTRAIT)
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    albumLayout.visibility = View.GONE
+                }
+                songPosition = intent.getIntExtra("index", 0)
+                val intent = Intent(this, MusicService::class.java)
+                bindService(intent, this, BIND_AUTO_CREATE)
+                startService(intent)
+                musicList= ArrayList()
+                if (playingFromFavourite){
+                    musicList.addAll(FavouriteActivity.favouriteSongsList)
+                }else {
+                    musicList.addAll(MainActivity.musicList)
+                }
                 newSongOnclick = intent.getBooleanExtra("sameSong", false)
                 if (isPlaying) {
                     activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
                 } else {
                     activePlayButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
                 }
-
                 currentPlayingSongSetup()
                 fromMainActivityLayout()
+
+            }
+            "FavouriteShuffle"->{
+                val orientation =
+                    intent.getIntExtra("orientation", Configuration.ORIENTATION_PORTRAIT)
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    albumLayout.visibility = View.GONE
+                }
+                songPosition = intent.getIntExtra("index", 0)
+                val intent = Intent(this, MusicService::class.java)
+                bindService(intent, this, BIND_AUTO_CREATE)
+                startService(intent)
+                newSongOnclick = true
+                musicList= ArrayList()
+                musicList.addAll(FavouriteActivity.favouriteSongsList)
+                musicList.shuffle()
+                currentPlayingSongSetup()
+                fromMainActivityLayout()
+                playingFromFavourite=true
+
+            }
+            "PlaylistDetails"->{
+                val orientation =
+                    intent.getIntExtra("orientation", Configuration.ORIENTATION_PORTRAIT)
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    albumLayout.visibility = View.GONE
+                }
+                songPosition = intent.getIntExtra("index", 0)
+                val intent = Intent(this, MusicService::class.java)
+                bindService(intent, this, BIND_AUTO_CREATE)
+                startService(intent)
+                newSongOnclick = true
+                musicList= ArrayList()
+                musicList.addAll(PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist)
+                currentPlayingSongSetup()
+                fromMainActivityLayout()
+                playingFromFavourite=false
 
             }
 
@@ -318,10 +405,14 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                         formatDuration(musicService!!.mediaPlayer!!.currentPosition.toLong())
                     songEndTime.text =
                         formatDuration(musicService!!.mediaPlayer!!.duration.toLong())
-                    seekBar.progress = 0
+                    seekBar.progress = musicService!!.mediaPlayer!!.currentPosition
                     seekBar.max = musicService!!.mediaPlayer!!.duration
                     musicService!!.mediaPlayer!!.setOnCompletionListener(this)
-                    return
+                    if (isFavourite) {
+                        favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+                    } else {
+                        favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -344,7 +435,13 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         seekBar.progress = 0
         seekBar.max = musicService!!.mediaPlayer!!.duration
         musicService!!.mediaPlayer!!.setOnCompletionListener(this)
-        currentPos = songPosition
+        currentPlayingID = musicList[songPosition].id
+//        musicService!!.audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+//        musicService!!.audioManager.requestAudioFocus(
+//            musicService,
+//            AudioManager.STREAM_MUSIC,
+//            AudioManager.AUDIOFOCUS_GAIN
+//        )
 
 
     }
@@ -381,12 +478,24 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             activeSongName.text = musicList[songPosition].title
             MainActivity.mainCurrent.text = musicList[songPosition].title
             createMediaPlayer()
+            favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
+            if (isFavourite) {
+                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+            } else {
+                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+            }
         } else {
             newSongOnclick = true
             setSongPosition(increment = false)
             activeSongName.text = musicList[songPosition].title
             MainActivity.mainCurrent.text = musicList[songPosition].title
             createMediaPlayer()
+            favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
+            if (isFavourite) {
+                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+            } else {
+                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+            }
         }
 
     }
@@ -394,12 +503,9 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
 
     private fun shuffle() {
         if (!isShuffle) {
-//            songPosition = (Math.random() * (musicList.size - 1)).toInt()
-//            currentPlayingSongSetup()
-//            createMediaPlayer()
             isShuffle = true
             shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.green))
-            isLooping=false
+            isLooping = false
             repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_24)
         } else {
             isShuffle = false
@@ -413,7 +519,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_24)
         } else {
             isLooping = true
-            isShuffle=false
+            isShuffle = false
             shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.teal_200))
             repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_one_24)
         }
@@ -439,45 +545,34 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         val dialog = BottomSheetDialog(this)
         dialog.setContentView(R.layout.bottom_dialog)
         dialog.show()
-        val fiveMinutes = dialog.findViewById<LinearLayout>(R.id.fiveMinutes)
-        val tenMinutes = dialog.findViewById<LinearLayout>(R.id.tenMinutes)
-        val fifteenMinutes = dialog.findViewById<LinearLayout>(R.id.fifteenMinutes)
-        val twentyMinutes = dialog.findViewById<LinearLayout>(R.id.twentyMinutes)
-        fiveMinutes?.setOnClickListener{
-            timer.setColorFilter(ContextCompat.getColor(this,R.color.green))
-            Toast.makeText(this, "EMU player will stop playing in 5 minutes",Toast.LENGTH_LONG).show()
-            minutes5 = true
-            Thread{Thread.sleep(5000*60)
-            if (minutes5) exitProtocol()}.start()
-
+        val radioGroup = dialog.findViewById<RadioGroup>(R.id.radioGroup)
+        dialog.findViewById<Button>(R.id.endSave)?.setOnClickListener {
+            val endTime = when (radioGroup?.checkedRadioButtonId) {
+                R.id.endIn10 -> 10
+                R.id.endIn20 -> 20
+                R.id.endIn30 -> 30
+                R.id.endIn40 -> 40
+                R.id.endIn50 -> 50
+                else -> 60
+            }
+            timer.setColorFilter(ContextCompat.getColor(this, R.color.purple_700))
+            Toast.makeText(this, "Ending in $endTime minutes.", Toast.LENGTH_LONG).show()
+            isTimerSet = true
+            Thread {
+                Thread.sleep((60000 * endTime).toLong())
+                if (isTimerSet) exitProtocol()
+            }.start()
             dialog.dismiss()
 
         }
-        tenMinutes?.setOnClickListener {
-            timer.setColorFilter(ContextCompat.getColor(this,R.color.green))
-            Toast.makeText(this, "EMU player will stop playing in 10 minutes",Toast.LENGTH_LONG).show()
-            minutes10 = true
-            Thread{Thread.sleep(10000*60)
-                if (minutes10) exitProtocol()}.start()
-            dialog.dismiss()
-        }
-        fifteenMinutes?.setOnClickListener {
-            timer.setColorFilter(ContextCompat.getColor(this,R.color.green))
-            Toast.makeText(this, "EMU player will stop playing in 15 minutes",Toast.LENGTH_LONG).show()
-            minutes15 = true
-            Thread{Thread.sleep(15000*60)
-                if (minutes15) exitProtocol()}.start()
-            dialog.dismiss()
+    }
 
-        }
-        twentyMinutes?.setOnClickListener {
-            timer.setColorFilter(ContextCompat.getColor(this,R.color.green))
-            Toast.makeText(this, "EMU player will stop playing in 20 minutes",Toast.LENGTH_LONG).show()
-            minutes20 = true
-            Thread{Thread.sleep(20000*60)
-                if (minutes20) exitProtocol()}.start()
-            dialog.dismiss()
-        }
+    private fun shareMusicFile() {
+        val shareIntent = Intent()
+        shareIntent.action = Intent.ACTION_SEND
+        shareIntent.type = "audio/*"
+        shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(musicList[songPosition].path))
+        startActivity(Intent.createChooser(shareIntent, "Share File"))
     }
 
 

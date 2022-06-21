@@ -1,29 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    android:gravity="center"
+    android:orientation="horizontal">
 
     <androidx.cardview.widget.CardView
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_margin="10dp"
+        android:padding="8dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="8dp">
 
         <ImageView
-            android:id="@+id/singleAlbumImageView"
+            android:id="@+id/favouriteSingleImageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:srcCompat="@drawable/music_player"
-            tools:ignore="ContentDescription,ImageContrastCheck" />
+            app:srcCompat="@drawable/music" />
+
     </androidx.cardview.widget.CardView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -31,40 +28,40 @@
         android:layout_height="match_parent">
 
         <TextView
-            android:id="@+id/singleSongName"
+            android:id="@+id/favouriteSingleSongName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight=".3"
             android:fontFamily="sans-serif-medium"
             android:gravity="center_vertical"
+            android:padding="8dp"
             android:singleLine="true"
-            android:text="@string/single_song_name"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+            android:text="TextView"
             android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/singleAlbumName"
-            app:layout_constraintEnd_toStartOf="@+id/singleTotalSongLength"
+            app:layout_constraintBottom_toTopOf="@+id/favouriteArtist"
+            app:layout_constraintEnd_toStartOf="@+id/favouriteSongDuration"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/singleAlbumName"
+            android:id="@+id/favouriteArtist"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:singleLine="true"
-            android:text="@string/single_album_name"
-            android:textSize="12sp"
+            android:padding="8dp"
+            android:text="TextView"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/singleTotalSongLength"
+            app:layout_constraintEnd_toStartOf="@+id/favouriteSongDuration"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/singleSongName" />
+            app:layout_constraintTop_toBottomOf="@+id/favouriteSingleSongName" />
 
         <TextView
-            android:id="@+id/singleTotalSongLength"
+            android:id="@+id/favouriteSongDuration"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:gravity="center"
             android:padding="8dp"
-            android:text="@string/single_total_length"
+            android:text="00 : 00"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

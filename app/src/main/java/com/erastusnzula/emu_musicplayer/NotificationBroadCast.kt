@@ -4,6 +4,8 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.telecom.TelecomManager
+import android.telephony.TelephonyManager
 import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -63,18 +65,14 @@ class NotificationBroadCast:BroadcastReceiver() {
             PlayerActivity.songEndTime.text = formatDuration(PlayerActivity.musicList[PlayerActivity.songPosition].duration)
             MainActivity.mainCurrent.text=PlayerActivity.musicList[PlayerActivity.songPosition].title
             PlayerActivity.musicService!!.serviceCreateMediaPlayer()
+            PlayerActivity.favouriteIndex= checkIfIsFavourite(PlayerActivity.musicList[PlayerActivity.songPosition].id)
+            if (PlayerActivity.isFavourite) {
+                PlayerActivity.favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+            }else{
+                PlayerActivity.favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+            }
         } catch (e: Exception) {
-            PlayerActivity.songPosition = PlayerActivity.currentPos
-            PlayerActivity.musicList.addAll(MainActivity.musicList)
-            Glide.with(context)
-                .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
-                .apply(RequestOptions().placeholder(R.drawable.ic_song_icon))
-                .into(PlayerActivity.activeAlbum)
-
-            PlayerActivity.activeSongName.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
-            MainActivity.mainCurrent.text=PlayerActivity.musicList[PlayerActivity.songPosition].title
-            PlayerActivity.songEndTime.text = formatDuration(PlayerActivity.musicList[PlayerActivity.songPosition].duration)
-            PlayerActivity.musicService!!.serviceCreateMediaPlayer()
+            //Toast.makeText(context, "Error NotificationCast: ${e.printStackTrace()}",Toast.LENGTH_LONG).show()
         }
     }
 }

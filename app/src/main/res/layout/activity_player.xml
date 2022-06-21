@@ -27,13 +27,12 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
                 android:gravity="center"
-                android:text="Empty"
-                app:layout_constraintEnd_toEndOf="parent"
+                android:text="@string/active_main_song"
+                app:layout_constraintBottom_toTopOf="@+id/activeStartTime"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@+id/activeStartTime"/>
+                app:layout_constraintEnd_toStartOf="@+id/fav"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <SeekBar
                 android:id="@+id/seekBar"
@@ -49,7 +48,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:gravity="center"
-                android:text="00 : 00"
+                android:text="@string/active_song_start"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/seekBar"
                 app:layout_constraintStart_toStartOf="parent"
@@ -61,11 +60,24 @@
                 android:layout_height="0dp"
                 android:layout_marginEnd="8dp"
                 android:gravity="center"
-                android:text="00 : 00"
+                android:text="@string/active_song_end"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/seekBar"
                 app:layout_constraintTop_toBottomOf="@+id/activeCurrentSong" />
+
+            <ImageButton
+                android:id="@+id/fav"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/image_buttons"
+                app:layout_constraintBottom_toTopOf="@+id/activeEndTime"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/activeCurrentSong"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_active_player_favourite_borderless" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
@@ -74,27 +86,28 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
+        android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" >
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="50dp"
-            android:layout_marginTop="50dp"
-            android:layout_marginEnd="50dp"
-            android:layout_marginBottom="10dp"
-            app:cardCornerRadius="8dp"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_margin="10dp"
+            app:cardCornerRadius="45dp"
             app:cardElevation="8dp">
 
             <ImageView
                 android:id="@+id/activeSongAlbumImageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:foregroundGravity="center"
                 android:scaleType="fitXY"
                 app:srcCompat="@drawable/ic_song_icon" />
         </androidx.cardview.widget.CardView>

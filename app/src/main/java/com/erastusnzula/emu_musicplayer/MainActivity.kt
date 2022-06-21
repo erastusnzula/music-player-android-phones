@@ -12,10 +12,7 @@ import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -26,9 +23,14 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import java.io.File
+import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
     private lateinit var drawer: DrawerLayout
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
     private val viewModel: MainScreenLoading by viewModels()
     private lateinit var navigationView: NavigationView
     private var exitDelay: Long = 0
+    private lateinit var bottomConstrainedLayout : ConstraintLayout
 
 
     companion object {
@@ -61,6 +64,7 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
 
         @SuppressLint("StaticFieldLeak")
         lateinit var mainCurrentLayout: LinearLayout
+        var orientation=Configuration.ORIENTATION_PORTRAIT
 
 
     }
@@ -81,26 +85,41 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
         mainCurrent.isSelected = true
         mainPrevious = findViewById(R.id.previous)
         mainNext = findViewById(R.id.next)
-        totalSongs = findViewById(R.id.mainTotalSongs)
+        totalSongs = findViewById(R.id.total)
         playButton = findViewById(R.id.playButton)
         navigationView = findViewById(R.id.navigationView)
         drawer = findViewById(R.id.drawer)
+        bottomConstrainedLayout = findViewById(R.id.mainBottonCurrentPlaying)
         toggle = ActionBarDrawerToggle(this@MainActivity, drawer, R.string.open, R.string.close)
         drawer.addDrawerListener(toggle)
         toggle.syncState()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         if (requestRuntimePermissions()) {
             setupInitialization()
+            FavouriteActivity.favouriteSongsList = ArrayList()
+            val editor = getSharedPreferences("FAVOURITES",MODE_PRIVATE)
+            val jsonString=editor.getString("FavouriteSongs", null)
+            val tokenType = object : TypeToken<ArrayList<MusicFile>>(){}.type
+            if (jsonString != null) {
+                val data: ArrayList<MusicFile> =
+                    GsonBuilder().create().fromJson(jsonString, tokenType)
+                FavouriteActivity.favouriteSongsList.addAll(data)
+            }
+
         }
         mainCurrent.setOnClickListener { currentSongClicked() }
 
+        bottomConstrainedLayout.setOnClickListener {
+            currentSongClicked()
+        }
+
         mainNext.setOnClickListener {
-            checkPlayNextSong()
+            checkPlayPreviousNextSong(increment = true)
 
 
         }
         mainPrevious.setOnClickListener {
-            checkPlayPreviousSong()
+            checkPlayPreviousNextSong(increment = false)
         }
 
         if (PlayerActivity.isPlaying) {
@@ -114,11 +133,11 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
                     playPauseMode()
                 }
             } catch (e: Exception) {
+                //Toast.makeText(this, "Error Main isPlaying: ${e.printStackTrace()}",Toast.LENGTH_LONG).show()
             }
 
         } else if (PlayerActivity.isPlayerActive) {
-            try {
-                mainCurrent.text = musicList[PlayerActivity.songPosition].title
+                mainCurrent.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
                 mainBottomControls.visibility = View.VISIBLE
                 mainCurrentLayout.visibility = View.VISIBLE
                 playButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
@@ -126,8 +145,6 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
                 playButton.setOnClickListener {
                     playPauseMode()
                 }
-            } catch (e: Exception) {
-            }
         }
 
 
@@ -151,10 +168,20 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
 
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            orientation = Configuration.ORIENTATION_LANDSCAPE
+
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            orientation=Configuration.ORIENTATION_PORTRAIT
+
+        }
+    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
+            menuInflater.inflate(R.menu.main_menu, menu)
+            return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -173,6 +200,21 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
             }
             R.id.refresh -> {
                 setupInitialization()
+            }
+            R.id.app_bar_search->{
+                try {
+                    val search = item.actionView as SearchView
+                    search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean = true
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Toast.makeText(this@MainActivity, newText.toString(), Toast.LENGTH_LONG)
+                                .show()
+                            return true
+                        }
+                    })
+                }catch (e:Exception){}
+
             }
         }
         return super.onOptionsItemSelected(item)
@@ -196,7 +238,7 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permission granted", Toast.LENGTH_LONG).show()
+                //Toast.makeText(this, "Permission granted", Toast.LENGTH_LONG).show()
                 setupInitialization()
             } else {
                 ActivityCompat.requestPermissions(
@@ -212,19 +254,32 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
     override fun onCompletion(mp: MediaPlayer?) {
         PlayerActivity.newSongOnclick =true
         try {
-            checkPlayNextSong()
-            Toast.makeText(this, "main on complete",Toast.LENGTH_LONG).show()
-//            setSongPosition(increment = true)
-//            mainCurrent.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
-//            PlayerActivity.musicService!!.serviceCreateMediaPlayer()
-//            try {
-//                PlayerActivity.musicService!!.currentPlayingSongSetup()
-//            } catch (e: Exception) {
-//                return
-//            }
+            checkPlayPreviousNextSong(increment = true)
+            //Toast.makeText(this, "main on complete",Toast.LENGTH_LONG).show()
         }catch (e:Exception){
             PlayerActivity.musicService!!.playNextSong(increment = true)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            if (!PlayerActivity.isPlaying && PlayerActivity.musicService != null) {
+                exitProtocol()
+            }
+        }catch (e:Exception){
+            PlayerActivity.musicService!!.mediaPlayer!!.release()
+            exitProcess(1)
+        }
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val editor = getSharedPreferences("FAVOURITES",MODE_PRIVATE).edit()
+        val jsonString = GsonBuilder().create().toJson(FavouriteActivity.favouriteSongsList)
+        editor.putString("FavouriteSongs", jsonString)
+        editor.apply()
     }
 
     private fun playPauseMode() {
@@ -250,8 +305,11 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
 
     private fun currentSongClicked() {
         if (mainCurrent.text.isNotBlank()) {
+            PlayerActivity.audioContinue =true
             val intent = Intent(this, PlayerActivity::class.java)
+            intent.putExtra("index", PlayerActivity.songPosition)
             intent.putExtra("sameSong", false)
+            intent.putExtra("orientation", orientation)
             intent.putExtra("class", "MainActivity")
             ContextCompat.startActivity(this, intent, null)
         } else {
@@ -259,82 +317,35 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
         }
     }
 
-    private fun checkPlayPreviousSong() {
-        if (!PlayerActivity.isShuffle) {
-            playPreviousSongMainActivity()
-        } else {
-            val songPosition = (Math.random() * musicList.size - 1).toInt()
-            try {
-                PlayerActivity.musicService!!.mediaPlayer!!.stop()
-                PlayerActivity.musicService!!.mediaPlayer!!.release()
-                mainPlaySong(pos = songPosition)
-            } catch (e: Exception) {
-                mainPlaySong(pos = songPosition)
-            }
-            mainCurrent.text = musicList[songPosition].title
-        }
-    }
-    private fun playPreviousSongMainActivity() {
-        if (!PlayerActivity.isLooping) {
-            val post = if (0 == PlayerActivity.currentPos) musicList.size - 1
-            else PlayerActivity.currentPos
-            try {
-                PlayerActivity.musicService!!.mediaPlayer!!.stop()
-                PlayerActivity.musicService!!.mediaPlayer!!.release()
-                mainPlaySong(pos = post - 1)
-            } catch (e: Exception) {
-                mainPlaySong(pos = post - 1)
-            }
-            mainCurrent.text = musicList[post - 1].title
-        }
-    }
 
-    private fun checkPlayNextSong() {
-        if (!PlayerActivity.isShuffle) {
-            playNextSongMainActivity()
-        } else {
-            val songPosition = (Math.random() * musicList.size - 1).toInt()
-            try {
-                PlayerActivity.musicService!!.mediaPlayer!!.stop()
-                PlayerActivity.musicService!!.mediaPlayer!!.release()
-                mainPlaySong(pos = songPosition)
-            } catch (e: Exception) {
-                mainPlaySong(pos = songPosition)
-            }
-            mainCurrent.text = musicList[songPosition].title
-        }
-
-    }
-    private fun playNextSongMainActivity() {
-        if (!PlayerActivity.isLooping) {
-            val post = if (musicList.size - 1 == PlayerActivity.currentPos) 0
-            else PlayerActivity.currentPos
-            try {
-
-                PlayerActivity.musicService!!.mediaPlayer!!.stop()
-                PlayerActivity.musicService!!.mediaPlayer!!.release()
-                mainPlaySong(pos = post + 1)
-            } catch (e: Exception) {
-                mainPlaySong(pos = post + 1)
-            }
-            mainCurrent.text = musicList[post + 1].title
-        }
-    }
-
-
-    private fun mainPlaySong(pos: Int) {
-        PlayerActivity.isPlaying = true
-        PlayerActivity.songPosition = pos
-        PlayerActivity.musicService!!.mediaPlayer = MediaPlayer()
-        PlayerActivity.musicService!!.mediaPlayer!!.reset()
-        PlayerActivity.musicService!!.mediaPlayer!!.setDataSource(musicList[pos].path)
-        PlayerActivity.musicService!!.mediaPlayer!!.prepare()
-        PlayerActivity.musicService!!.mediaPlayer!!.start()
+    private fun checkPlayPreviousNextSong(increment:Boolean) {
+        PlayerActivity.musicService!!.newSongOnClick=true
+        setSongPosition(increment=increment)
+        PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
         PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24,1F)
-        PlayerActivity.musicService!!.mediaPlayer!!.setOnCompletionListener(this)
         playButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        PlayerActivity.currentPos = pos
+        try {
+            Glide.with(this)
+                .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
+                .apply(RequestOptions().placeholder(R.drawable.ic_song_icon))
+                .into(PlayerActivity.activeAlbum)
+
+            PlayerActivity.activeSongName.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
+            PlayerActivity.songEndTime.text = formatDuration(PlayerActivity.musicList[PlayerActivity.songPosition].duration)
+            mainCurrent.text=PlayerActivity.musicList[PlayerActivity.songPosition].title
+            PlayerActivity.musicService!!.serviceCreateMediaPlayer()
+            PlayerActivity.favouriteIndex= checkIfIsFavourite(PlayerActivity.musicList[PlayerActivity.songPosition].id)
+            if (PlayerActivity.isFavourite) {
+                PlayerActivity.favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+            }else{
+                PlayerActivity.favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+            }
+        } catch (e: Exception) {
+           //Toast.makeText(this, "Error at main play next ${e.printStackTrace()}",Toast.LENGTH_LONG).show()
+        }
+
     }
+
 
     private fun setupInitialization() {
         recyclerView.setHasFixedSize(true)
@@ -345,7 +356,7 @@ class MainActivity : AppCompatActivity(),MediaPlayer.OnCompletionListener {
         adapter = MusicRecyclerAdapter(this, musicList)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
-        totalSongs.text = musicList.size.toString()
+        totalSongs.text = "Total songs: " + musicList.size.toString()
 
 
     }
