@@ -1,5 +1,6 @@
 package com.erastusnzula.emu_musicplayer
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -20,11 +21,11 @@ import kotlin.collections.ArrayList
 class PlaylistActivity : AppCompatActivity() {
     companion object{
         var musicPlaylist: MusicPlaylist= MusicPlaylist()
-        lateinit var adapter: PlaylistAdapter
 
     }
     private lateinit var playlistRecyclerView:RecyclerView
     private lateinit var floatingAddButton: Button
+    private lateinit var adapter: PlaylistAdapter
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,12 +59,11 @@ class PlaylistActivity : AppCompatActivity() {
             R.id.playlist_favourite->{
                 startActivity(Intent(this@PlaylistActivity, FavouriteActivity::class.java))
             }
-
-
         }
         return super.onOptionsItemSelected(item)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onResume() {
         super.onResume()
         adapter.notifyDataSetChanged()
@@ -77,6 +77,10 @@ class PlaylistActivity : AppCompatActivity() {
         val dialog = MaterialAlertDialogBuilder(this)
         dialog.setView(dialogLayout)
         dialog.setTitle("Add Playlist")
+        dialog.setCancelable(false)
+        dialog.setNegativeButton("Cancel"){dialogDismiss,_->
+            dialogDismiss.dismiss()
+        }
         dialog.setPositiveButton("Add"){dialogDismiss,_->
             val name = playlistName.text
             val owner = playlistOwner.text
@@ -106,7 +110,7 @@ class PlaylistActivity : AppCompatActivity() {
             newPlaylist.playlist= ArrayList()
             newPlaylist.createdBy=owner
             val calendar= Calendar.getInstance().time
-            val format = SimpleDateFormat("dd MM yyyy", Locale.ENGLISH)
+            val format = SimpleDateFormat("dd - MM - yyyy", Locale.ENGLISH)
             newPlaylist.createdOn=format.format(calendar)
             musicPlaylist.reference.add(newPlaylist)
             adapter.playlistRefresh()

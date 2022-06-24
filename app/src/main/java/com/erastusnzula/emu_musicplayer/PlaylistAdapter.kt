@@ -1,5 +1,6 @@
 package com.erastusnzula.emu_musicplayer
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -21,7 +22,6 @@ class PlaylistAdapter(private var context: Context, private var playList: ArrayL
     RecyclerView.Adapter<PlaylistAdapter.ViewHolder>() {
     companion object{
         const val margin = 10
-        lateinit var playlistTotalSongs: TextView
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -43,6 +43,7 @@ class PlaylistAdapter(private var context: Context, private var playList: ArrayL
         return playList.size
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun playlistRefresh(){
         playList = ArrayList()
         playList.addAll(PlaylistActivity.musicPlaylist.reference)
@@ -56,7 +57,6 @@ class PlaylistAdapter(private var context: Context, private var playList: ArrayL
 
 
         fun bind(position: Int) {
-            playlistTotalSongs= itemView.findViewById(R.id.totalSongsCount)
             playlistName.text=playList[position].name
             playlistName.isSelected=true
             deletePlaylist.setOnClickListener {

@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.google.gson.GsonBuilder
 
 class PlaylistDetailsActivity : AppCompatActivity() {
     companion object{
@@ -30,6 +31,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
     private lateinit var playlistRemoveButton: Button
     lateinit var adapter: MusicRecyclerAdapter
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_EMUMusicPlayer)
@@ -50,7 +52,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
         }
         playlistRemoveButton.setOnClickListener {
             val alert = AlertDialog.Builder(this)
-            alert.setTitle(" Remove all songs from playlist")
+            alert.setTitle(" Remove all songs")
             alert.setMessage(
                 "Do you want to remove all songs ?"
             )
@@ -61,9 +63,6 @@ class PlaylistDetailsActivity : AppCompatActivity() {
             alert.setPositiveButton("Yes") { dialog, _ ->
                 PlaylistActivity.musicPlaylist.reference[currentPlaylistPosition].playlist.clear()
                 playlistTotal.text = "Total Songs: ${adapter.itemCount}"
-                PlaylistAdapter.playlistTotalSongs.visibility= View.VISIBLE
-                PlaylistAdapter.playlistTotalSongs.text= "Total Songs: ${adapter.itemCount}"
-                PlaylistActivity.adapter.notifyDataSetChanged()
                 adapter.refreshPlaylist()
                 dialog.dismiss()
             }
@@ -74,21 +73,17 @@ class PlaylistDetailsActivity : AppCompatActivity() {
         playlistDetailsRecyclerView.setHasFixedSize(true)
         PlaylistActivity.musicPlaylist.reference[currentPlaylistPosition].playlist.sortBy { it.title }
         PlaylistActivity.musicPlaylist.reference[currentPlaylistPosition].playlist.distinct()
-        //PlaylistActivity.musicPlaylist.reference[currentPlaylistPosition].playlist.addAll(MainActivity.musicList)
         adapter=MusicRecyclerAdapter(this, PlaylistActivity.musicPlaylist.reference[currentPlaylistPosition].playlist,playlistDetailsActivity = true)
         playlistDetailsRecyclerView.adapter=adapter
         totalSongCurrent=adapter.itemCount
         playlistDetailsRecyclerView.layoutManager=LinearLayoutManager(this)
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
     override fun onResume() {
         super.onResume()
         playlistName.text = "Playlist : " +PlaylistActivity.musicPlaylist.reference[currentPlaylistPosition].name
         playlistTotal.text = "Total Songs: ${adapter.itemCount}"
-        PlaylistAdapter.playlistTotalSongs.visibility= View.VISIBLE
-        PlaylistAdapter.playlistTotalSongs.text= "Total Songs: ${adapter.itemCount}"
-        PlaylistActivity.adapter.notifyDataSetChanged()
         playlistCreatedOn.text = "Created on: ${PlaylistActivity.musicPlaylist.reference[currentPlaylistPosition].createdOn}"
         playlistCreatedBy.text = "Created By: ${PlaylistActivity.musicPlaylist.reference[currentPlaylistPosition].createdBy}"
         if (adapter.itemCount > 0){
@@ -98,12 +93,19 @@ class PlaylistDetailsActivity : AppCompatActivity() {
                 .into(playlistDetailsImageView)
         }
         adapter.notifyDataSetChanged()
+        val editor = getSharedPreferences("FAVOURITES",MODE_PRIVATE).edit()
+        val jsonStringPlaylist = GsonBuilder().create().toJson(PlaylistActivity.musicPlaylist)
+        editor.putString("PlaylistSongs", jsonStringPlaylist)
+        editor.apply()
 
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
-            android.R.id.home->finish()
+            android.R.id.home->{
+                finish()
+                startActivity(Intent(this, PlaylistActivity::class.java))
+            }
         }
         return super.onOptionsItemSelected(item)
     }

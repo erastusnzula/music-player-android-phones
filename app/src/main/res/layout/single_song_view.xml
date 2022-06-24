@@ -22,7 +22,8 @@
             android:id="@+id/singleAlbumImageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:srcCompat="@drawable/music_player"
+            android:padding="5dp"
+            app:srcCompat="@drawable/music_player_icon"
             tools:ignore="ContentDescription,ImageContrastCheck" />
     </androidx.cardview.widget.CardView>
 

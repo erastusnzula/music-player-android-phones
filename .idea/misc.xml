@@ -10,11 +10,15 @@
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_arrow_back_ios_24.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_arrow_forward_ios_24.xml" value="0.154" />
+        <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_brightness_200.xml" value="0.154" />
+        <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_brightness_700.xml" value="0.154" />
+        <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_brightness_teal.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_favorite_24.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_favorite_border_24.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_feedback_24.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_graphic_eq_24.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_info_24.xml" value="0.154" />
+        <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_info_success.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_music_note_24.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_navigate_next_24.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/ic_baseline_pause_24.xml" value="0.154" />
@@ -36,16 +40,20 @@
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/image_buttons.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/scrollbar_icon.xml" value="0.154" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/drawable/splash_scale_down.xml" value="0.154" />
+        <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_about.xml" value="0.21" />
+        <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_feedback.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_fovourite.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_player.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_playlist.xml" value="0.21" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_playlist_details.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_selection.xml" value="0.1814814814814815" />
+        <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_settings.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/activity_songs_playlist.xml" value="0.1814814814814815" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/add_playlist_dialog.xml" value="0.22" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/bottom_dialog.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/favourite_single_view.xml" value="0.33" />
+        <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/feedback_sent.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/nav_resource.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/playlist_single_view.xml" value="0.25" />
         <entry key="..\:/Users/Yangu/Desktop/EMUMusicPlayer/app/src/main/res/layout/playlist_view_single.xml" value="0.33" />

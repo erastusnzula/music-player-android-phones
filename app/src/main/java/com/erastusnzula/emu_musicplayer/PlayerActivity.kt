@@ -6,17 +6,21 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
+import android.database.Cursor
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.audiofx.AudioEffect
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
@@ -37,8 +41,9 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         var currentPlayingID: String = ""
         var isFavourite = false
         var favouriteIndex = -1
-        var audioContinue = false
         var playingFromFavourite = false
+        var playingFromPlaylist = false
+        var playingFromDirectoryIntent=false
 
         @SuppressLint("StaticFieldLeak")
         lateinit var activePlayButton: ImageView
@@ -83,8 +88,6 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_EMUMusicPlayer)
         setContentView(R.layout.activity_player)
-
-
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Current playing"
         activeAlbum = findViewById(R.id.activeSongAlbumImageView)
@@ -102,27 +105,40 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         timer = findViewById(R.id.activeTimerImageButton)
         shareImageButton = findViewById(R.id.activeShareImageButton)
         favouriteImageButton = findViewById(R.id.fav)
-        setUpInitialization()
+        if (intent.data?.scheme.contentEquals("content")) {
+            try {
+                playingFromDirectoryIntent = true
+                val intentService = Intent(this, MusicService::class.java)
+                bindService(intentService, this, BIND_AUTO_CREATE)
+                startService(intentService)
+                newSongOnclick = true
+                musicList = ArrayList()
+                musicList.add(getSongPath(intent.data!!))
+                activeSongName.text = musicList[songPosition].title
+                try {
+                    Glide.with(this)
+                        .load(getSongArt(musicList[songPosition].path))
+                        .apply(RequestOptions().placeholder(R.drawable.ic_song_icon))
+                        .into(activeAlbum)
+                } catch (e: Exception) {
+                }
+            }catch (e:Exception){
+                playingFromDirectoryIntent=false
+                startActivity(Intent(this, MainActivity::class.java))
+            }
+
+        } else {
+            playingFromDirectoryIntent=false
+            setUpInitialization()
+        }
 
 
-        activePlayButton.setOnClickListener {
-            playPauseControl()
-        }
-        nextSong.setOnClickListener {
-            playNextSong(increment = true)
-        }
-        previousSong.setOnClickListener {
-            playNextSong(increment = false)
-        }
-        shuffleButton.setOnClickListener {
-            shuffle()
-        }
-        equalizer.setOnClickListener {
-            equalizerIntent()
-        }
-        repeatImageButton.setOnClickListener {
-            repeatControl()
-        }
+        activePlayButton.setOnClickListener { playPauseControl() }
+        nextSong.setOnClickListener { playNextSong(increment = true) }
+        previousSong.setOnClickListener { playNextSong(increment = false) }
+        shuffleButton.setOnClickListener { shuffle() }
+        equalizer.setOnClickListener { equalizerIntent() }
+        repeatImageButton.setOnClickListener { repeatControl() }
         shareImageButton.setOnClickListener { shareMusicFile() }
         timer.setOnClickListener {
             if (!isTimerSet) {
@@ -161,7 +177,8 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                     isFavourite = true
                     favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
                     FavouriteActivity.favouriteSongsList.add(musicList[songPosition])
-                    Toast.makeText(this, "Successfully added to favourites",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Successfully added to favourites", Toast.LENGTH_SHORT)
+                        .show()
                 }
             } catch (e: Exception) {
                 return@setOnClickListener
@@ -171,7 +188,6 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
 
 
     }
-
 
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -188,12 +204,16 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         val binder = service as MusicService.MyBinder
         musicService = binder.currentServices()
         createMediaPlayer()
-        MainActivity.mainBottomControls.visibility = View.VISIBLE
-        MainActivity.mainCurrentLayout.visibility = View.VISIBLE
         musicService!!.runnableSeekBar()
-        if (isPlaying) {
-            MainActivity.mainCurrent.setTextColor(ContextCompat.getColor(this, R.color.green))
+        if(!playingFromDirectoryIntent) {
+            MainActivity.mainBottomControls.visibility = View.VISIBLE
+            MainActivity.mainCurrentLayout.visibility = View.VISIBLE
+            if (isPlaying) {
+                MainActivity.mainCurrent.setTextColor(ContextCompat.getColor(this, R.color.green))
+            }
         }
+
+
         isPlayerActive = true
 
     }
@@ -232,6 +252,11 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         if (requestCode == 20 || resultCode == RESULT_OK) return
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if (musicList[songPosition].id == "Unknown" && !isPlaying) exitProtocol()
+    }
+
     private fun currentPlayingSongSetup() {
         try {
             Glide.with(this)
@@ -242,24 +267,19 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             activeSongName.text = musicList[songPosition].title
             if (isLooping) repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_one_24)
             if (isShuffle) shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.green))
-            if (isTimerSet) timer.setColorFilter(
-                ContextCompat.getColor(
-                    this,
-                    R.color.purple_700
-                )
-            )
+            if (isTimerSet) timer.setColorFilter(ContextCompat.getColor(this, R.color.purple_700))
             favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
             if (isFavourite) {
                 favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
             } else {
                 favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
             }
-
-            if (MainActivity.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            if (MainActivity.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 albumLayout.visibility = View.GONE
             }
 
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+        }
 
     }
 
@@ -280,7 +300,8 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 musicList.addAll(FavouriteActivity.favouriteSongsList)
                 currentPlayingSongSetup()
                 fromMainActivityLayout()
-                playingFromFavourite=true
+                playingFromFavourite = true
+                playingFromPlaylist=false
             }
             "MusicRecyclerAdapter" -> {
                 val orientation =
@@ -293,11 +314,12 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 bindService(intent, this, BIND_AUTO_CREATE)
                 startService(intent)
                 newSongOnclick = true
-                musicList= ArrayList()
+                musicList = ArrayList()
                 musicList.addAll(MainActivity.musicList)
                 currentPlayingSongSetup()
                 fromMainActivityLayout()
-                playingFromFavourite=false
+                playingFromFavourite = false
+                playingFromPlaylist=false
             }
             "MainActivity" -> {
                 val orientation =
@@ -309,11 +331,17 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 val intent = Intent(this, MusicService::class.java)
                 bindService(intent, this, BIND_AUTO_CREATE)
                 startService(intent)
-                musicList= ArrayList()
-                if (playingFromFavourite){
-                    musicList.addAll(FavouriteActivity.favouriteSongsList)
-                }else {
-                    musicList.addAll(MainActivity.musicList)
+                musicList = ArrayList()
+                when {
+                    playingFromFavourite -> {
+                        musicList.addAll(FavouriteActivity.favouriteSongsList)
+                    }
+                    playingFromPlaylist -> {
+                        musicList.addAll(PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist)
+                    }
+                    else -> {
+                        musicList.addAll(MainActivity.musicList)
+                    }
                 }
                 newSongOnclick = intent.getBooleanExtra("sameSong", false)
                 if (isPlaying) {
@@ -325,7 +353,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 fromMainActivityLayout()
 
             }
-            "FavouriteShuffle"->{
+            "FavouriteShuffle" -> {
                 val orientation =
                     intent.getIntExtra("orientation", Configuration.ORIENTATION_PORTRAIT)
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -336,15 +364,16 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 bindService(intent, this, BIND_AUTO_CREATE)
                 startService(intent)
                 newSongOnclick = true
-                musicList= ArrayList()
+                musicList = ArrayList()
                 musicList.addAll(FavouriteActivity.favouriteSongsList)
                 musicList.shuffle()
                 currentPlayingSongSetup()
                 fromMainActivityLayout()
-                playingFromFavourite=true
+                playingFromFavourite = true
+                playingFromPlaylist=false
 
             }
-            "PlaylistDetails"->{
+            "PlaylistDetails" -> {
                 val orientation =
                     intent.getIntExtra("orientation", Configuration.ORIENTATION_PORTRAIT)
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -355,11 +384,12 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 bindService(intent, this, BIND_AUTO_CREATE)
                 startService(intent)
                 newSongOnclick = true
-                musicList= ArrayList()
+                musicList = ArrayList()
                 musicList.addAll(PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist)
                 currentPlayingSongSetup()
                 fromMainActivityLayout()
-                playingFromFavourite=false
+                playingFromFavourite = false
+                playingFromPlaylist=true
 
             }
 
@@ -373,32 +403,21 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         val mainNext = MainActivity.mainNext
         val mainPlay = MainActivity.playButton
         mainCurrent.text = musicList[songPosition].title
-        mainPlay.setOnClickListener {
-            playPauseControl()
-        }
-        mainNext.setOnClickListener {
-            playNextSong(increment = true)
-        }
-        mainPrevious.setOnClickListener {
-            playNextSong(increment = false)
-        }
-
-
+        mainPlay.setOnClickListener { playPauseControl() }
+        mainNext.setOnClickListener { playNextSong(increment = true) }
+        mainPrevious.setOnClickListener { playNextSong(increment = false) }
     }
 
     private fun createMediaPlayer() {
         try {
-
             when {
                 musicService!!.mediaPlayer == null -> {
                     playSong()
-
                 }
                 newSongOnclick -> {
                     musicService!!.mediaPlayer!!.stop()
                     musicService!!.mediaPlayer!!.release()
                     playSong()
-
                 }
                 else -> {
                     songStartTime.text =
@@ -422,13 +441,11 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
 
     private fun playSong() {
         musicService!!.mediaPlayer = MediaPlayer()
-        musicService!!.mediaPlayer!!.reset()
         musicService!!.mediaPlayer!!.setDataSource(musicList[songPosition].path)
         musicService!!.mediaPlayer!!.prepare()
         musicService!!.mediaPlayer!!.start()
         isPlaying = true
         activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
         musicService!!.showNotification(R.drawable.ic_baseline_pause_24, 1F)
         songStartTime.text = formatDuration(musicService!!.mediaPlayer!!.currentPosition.toLong())
         songEndTime.text = formatDuration(musicService!!.mediaPlayer!!.duration.toLong())
@@ -436,14 +453,9 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         seekBar.max = musicService!!.mediaPlayer!!.duration
         musicService!!.mediaPlayer!!.setOnCompletionListener(this)
         currentPlayingID = musicList[songPosition].id
-//        musicService!!.audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-//        musicService!!.audioManager.requestAudioFocus(
-//            musicService,
-//            AudioManager.STREAM_MUSIC,
-//            AudioManager.AUDIOFOCUS_GAIN
-//        )
-
-
+        if (!playingFromDirectoryIntent) {
+            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
+        }
     }
 
     private fun playPauseControl() {
@@ -457,45 +469,55 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
     private fun resume() {
         isPlaying = true
         activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
         musicService!!.mediaPlayer!!.start()
         musicService!!.showNotification(R.drawable.ic_baseline_pause_24, 1F)
-
+        if (!playingFromDirectoryIntent){
+            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
+        }
     }
 
     private fun pauseSong() {
         isPlaying = false
         activePlayButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
-        MainActivity.playButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
         musicService!!.mediaPlayer!!.pause()
         musicService!!.showNotification(R.drawable.ic_baseline_play_circle_filled_24, 0F)
+        if (!playingFromDirectoryIntent){
+            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
+        }
     }
 
     private fun playNextSong(increment: Boolean) {
-        if (increment) {
-            newSongOnclick = true
-            setSongPosition(increment = true)
-            activeSongName.text = musicList[songPosition].title
-            MainActivity.mainCurrent.text = musicList[songPosition].title
-            createMediaPlayer()
-            favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
-            if (isFavourite) {
-                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+        try {
+            if (increment) {
+                newSongOnclick = true
+                setSongPosition(increment = true)
+                activeSongName.text = musicList[songPosition].title
+                if (!playingFromDirectoryIntent) {
+                    MainActivity.mainCurrent.text = musicList[songPosition].title
+                }
+                createMediaPlayer()
+                favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
+                if (isFavourite) {
+                    favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+                } else {
+                    favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+                }
             } else {
-                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+                newSongOnclick = true
+                setSongPosition(increment = false)
+                activeSongName.text = musicList[songPosition].title
+                if (!playingFromDirectoryIntent) {
+                    MainActivity.mainCurrent.text = musicList[songPosition].title
+                }
+                createMediaPlayer()
+                favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
+                if (isFavourite) {
+                    favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
+                } else {
+                    favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
+                }
             }
-        } else {
-            newSongOnclick = true
-            setSongPosition(increment = false)
-            activeSongName.text = musicList[songPosition].title
-            MainActivity.mainCurrent.text = musicList[songPosition].title
-            createMediaPlayer()
-            favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
-            if (isFavourite) {
-                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
-            } else {
-                favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
-            }
+        } catch (e: Exception) {
         }
 
     }
@@ -573,6 +595,31 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         shareIntent.type = "audio/*"
         shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(musicList[songPosition].path))
         startActivity(Intent.createChooser(shareIntent, "Share File"))
+    }
+
+
+    private fun getSongPath(contentUri: Uri): MusicFile {
+        var cursor: Cursor? = null
+        try {
+            val projection = arrayOf(MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DURATION)
+            cursor = this.contentResolver.query(contentUri, projection, null, null, null)
+            val dataColumn = cursor?.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+            val durationColumn = cursor?.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            cursor!!.moveToFirst()
+            val path = dataColumn?.let { cursor.getString(it) }
+            val duration = durationColumn?.let { cursor.getLong(it) }!!
+            return MusicFile(
+                id = "Unknown",
+                title = path.toString(),
+                album = "Unknown",
+                artist = "Unknown",
+                duration = duration,
+                path = path.toString(),
+                art = "Unknown"
+            )
+        } finally {
+            cursor?.close()
+        }
     }
 
 

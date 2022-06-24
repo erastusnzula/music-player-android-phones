@@ -15,21 +15,8 @@ import kotlin.math.min
 
 class FavouriteAdapter(private var context: Context, private var musicList: ArrayList<MusicFile>) :
     RecyclerView.Adapter<FavouriteAdapter.ViewHolder>() {
-    companion object {
-        const val margin = 10
-    }
-
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            LayoutInflater.from(context).inflate(R.layout.favourite_single_view, parent, false)
-//        val width = parent.width/2 - (2* margin)
-//        val height = parent.height/2 - (2* margin)
-//        val size = min(width, height)
-//        val params = view.layoutParams as ViewGroup.MarginLayoutParams
-//        params.width = size
-//        params.height=size
-//        params.setMargins(margin, margin, margin, margin)
+        val view = LayoutInflater.from(context).inflate(R.layout.favourite_single_view, parent, false)
         return ViewHolder(view)
     }
 
@@ -42,12 +29,10 @@ class FavouriteAdapter(private var context: Context, private var musicList: Arra
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val favouriteImageView: ImageView =
-            itemView.findViewById(R.id.favouriteSingleImageView)
+        private val favouriteImageView: ImageView = itemView.findViewById(R.id.favouriteSingleImageView)
         private val favoriteSongName: TextView = itemView.findViewById(R.id.favouriteSingleSongName)
         private val favouriteArtist: TextView = itemView.findViewById(R.id.favouriteArtist)
-        private val favouriteSongDuration: TextView =
-            itemView.findViewById(R.id.favouriteSongDuration)
+        private val favouriteSongDuration: TextView = itemView.findViewById(R.id.favouriteSongDuration)
 
         fun bind(position: Int) {
             favoriteSongName.text = musicList[position].title
@@ -67,7 +52,6 @@ class FavouriteAdapter(private var context: Context, private var musicList: Arra
                     intent.putExtra("class", "MainActivity")
                     ContextCompat.startActivity(context, intent, null)
                 } else {
-                    PlayerActivity.audioContinue = true
                     val intent = Intent(context, PlayerActivity::class.java)
                     intent.putExtra("index", position)
                     intent.putExtra("orientation", FavouriteActivity.favoriteOrientation)

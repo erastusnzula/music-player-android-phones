@@ -22,9 +22,6 @@ class MusicRecyclerAdapter(
     private val selectionActivity: Boolean = false
 ) :
     RecyclerView.Adapter<MusicRecyclerAdapter.ViewHolder>() {
-    companion object{
-
-    }
     private var countSelected = 0
 
 
@@ -48,6 +45,8 @@ class MusicRecyclerAdapter(
         private val songAlbum: TextView = itemView.findViewById(R.id.singleAlbumName)
         private val duration: TextView = itemView.findViewById(R.id.singleTotalSongLength)
         private val art: ImageView = itemView.findViewById(R.id.singleAlbumImageView)
+
+        @SuppressLint("SetTextI18n")
         fun bind(position: Int) {
             songName.text = musicList[position].title
             if (musicList[position].album != "0") {
@@ -55,17 +54,12 @@ class MusicRecyclerAdapter(
             } else {
                 songAlbum.text = "<Unknown>"
             }
-
             duration.text = formatDuration(musicList[position].duration)
-
-
             Glide.with(context)
                 .load(musicList[position].art)
-                .apply(RequestOptions().placeholder(R.drawable.music_player))
+                .apply(RequestOptions().placeholder(R.drawable.music_player_icon))
                 .into(art)
             itemView.setOnClickListener {
-                //songName.setTextColor(ContextCompat.getColor(context, R.color.purple_700))
-                //PlayerActivity.audioContinue =true
                 when {
                     musicList[position].id == PlayerActivity.currentPlayingID -> {
                         PlayerActivity.playingFromFavourite = false
@@ -116,9 +110,6 @@ class MusicRecyclerAdapter(
     private fun addSongToPlaylist(song: MusicFile): Boolean {
         PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist.forEachIndexed { index, musicFile ->
             if (song.id == musicFile.id) {
-//                PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist.removeAt(
-//                    index
-//                )
                 Toast.makeText(context, "Song already added",Toast.LENGTH_LONG).show()
                 return false
             }
@@ -127,12 +118,11 @@ class MusicRecyclerAdapter(
             val intent = Intent(context,PlaylistActivity::class.java)
             ContextCompat.startActivity(context,intent,null)
             }
-
         PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist.add(song)
-
         return true
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun refreshPlaylist(){
         musicList= ArrayList()
         musicList=PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist

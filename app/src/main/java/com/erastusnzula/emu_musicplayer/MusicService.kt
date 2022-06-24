@@ -1,6 +1,7 @@
 package com.erastusnzula.emu_musicplayer
 
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
@@ -24,34 +25,12 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     private lateinit var mediaSession: MediaSessionCompat
     var newSongOnClick = false
     private lateinit var runnable: Runnable
-    lateinit var audioManager: AudioManager
 
     override fun onBind(intent: Intent?): IBinder {
         mediaSession = MediaSessionCompat(baseContext, "My Music")
         return myBinder
 
     }
-
-//    override fun onAudioFocusChange(focusChange: Int) {
-//        if (focusChange <= 0) {
-//            PlayerActivity.isPlaying = false
-//            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
-//            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
-//            PlayerActivity.musicService!!.mediaPlayer!!.pause()
-//            PlayerActivity.musicService!!.showNotification(
-//                R.drawable.ic_baseline_play_circle_filled_24,
-//                0F
-//            )
-//
-//        } else {
-//            PlayerActivity.isPlaying = true
-//            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-//            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
-//            PlayerActivity.musicService!!.mediaPlayer!!.start()
-//            PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24, 1F)
-//
-//        }
-//    }
 
     override fun onCompletion(mp: MediaPlayer?) {
         PlayerActivity.newSongOnclick = true
@@ -77,7 +56,9 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         }
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     fun showNotification(playPauseIcon: Int, playBackSpeed: Float) {
+
         val intent = Intent(baseContext, MainActivity::class.java)
         val contentIntent = PendingIntent.getActivity(this, 0, intent, 0)
         val previousIntent = Intent(
@@ -124,25 +105,31 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
 
         val notification = NotificationCompat.Builder(baseContext, ApplicationClass.CHANNEL_ID)
-            .setContentIntent(contentIntent)
-            .setSilent(true)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setContentTitle(PlayerActivity.musicList[PlayerActivity.songPosition].title)
-            .setContentText(PlayerActivity.musicList[PlayerActivity.songPosition].artist)
-            .setSmallIcon(R.drawable.ic_song_icon)
-            .setLargeIcon(largeIcon)
-            .setStyle(
-                androidx.media.app.NotificationCompat.MediaStyle()
-                    .setShowActionsInCompactView(0, 1, 2)
-                    .setMediaSession(mediaSession.sessionToken)
-            )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setOnlyAlertOnce(true)
-            .addAction(R.drawable.ic_baseline_skip_previous_24, "Previous", pendingPreviousIntent)
-            .addAction(playPauseIcon, "Play", pendingPlayIntent)
-            .addAction(R.drawable.ic_baseline_skip_next_24, "Next", pendingNextIntent)
-            .addAction(R.drawable.ic_baseline_cancel_24, "Exit", pendingExitIntent)
+        if (!PlayerActivity.playingFromDirectoryIntent) {
+            notification.setContentIntent(contentIntent)
+        }
+        notification.setSilent(true)
+        notification.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        notification.setContentTitle(PlayerActivity.musicList[PlayerActivity.songPosition].title)
+        notification.setContentText(PlayerActivity.musicList[PlayerActivity.songPosition].artist)
+        notification.setSmallIcon(R.drawable.ic_song_icon)
+        notification.setLargeIcon(largeIcon)
+        notification.setStyle(
+            androidx.media.app.NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(0, 1, 2)
+                .setMediaSession(mediaSession.sessionToken)
+        )
+        notification.priority = NotificationCompat.PRIORITY_HIGH
+        notification.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        notification.setOnlyAlertOnce(true)
+        notification.addAction(
+            R.drawable.ic_baseline_skip_previous_24,
+            "Previous",
+            pendingPreviousIntent
+        )
+        notification.addAction(playPauseIcon, "Play", pendingPlayIntent)
+        notification.addAction(R.drawable.ic_baseline_skip_next_24, "Next", pendingNextIntent)
+        notification.addAction(R.drawable.ic_baseline_cancel_24, "Exit", pendingExitIntent)
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -176,13 +163,11 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
             when {
                 PlayerActivity.musicService!!.mediaPlayer == null -> {
                     servicePlaySong()
-
                 }
                 newSongOnClick -> {
                     PlayerActivity.musicService!!.mediaPlayer!!.stop()
                     PlayerActivity.musicService!!.mediaPlayer!!.release()
                     servicePlaySong()
-
                 }
                 else -> {
                     return
@@ -195,13 +180,11 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     private fun servicePlaySong() {
         PlayerActivity.musicService!!.mediaPlayer = MediaPlayer()
-        PlayerActivity.musicService!!.mediaPlayer!!.reset()
         PlayerActivity.musicService!!.mediaPlayer!!.setDataSource(PlayerActivity.musicList[PlayerActivity.songPosition].path)
         PlayerActivity.musicService!!.mediaPlayer!!.prepare()
         PlayerActivity.musicService!!.mediaPlayer!!.start()
         PlayerActivity.isPlaying = true
         PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
         PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24, 1F)
         PlayerActivity.songStartTime.text = formatDuration(mediaPlayer!!.currentPosition.toLong())
         PlayerActivity.songEndTime.text = formatDuration(mediaPlayer!!.duration.toLong())
@@ -209,7 +192,9 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         PlayerActivity.seekBar.max = mediaPlayer!!.duration
         PlayerActivity.musicService!!.mediaPlayer!!.setOnCompletionListener(this)
         PlayerActivity.currentPlayingID = PlayerActivity.musicList[PlayerActivity.songPosition].id
-
+        if (!PlayerActivity.playingFromDirectoryIntent) {
+            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
+        }
     }
 
     fun runnableSeekBar() {
@@ -218,7 +203,6 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
                 formatDuration(mediaPlayer!!.currentPosition.toLong())
             PlayerActivity.seekBar.progress = mediaPlayer!!.currentPosition
             Handler(Looper.getMainLooper()).postDelayed(runnable, 200)
-
         }
         Handler(Looper.getMainLooper()).postDelayed(runnable, 0)
     }
@@ -230,16 +214,20 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
             setSongPosition(increment = true)
             PlayerActivity.activeSongName.text =
                 PlayerActivity.musicList[PlayerActivity.songPosition].title
-            MainActivity.mainCurrent.text =
-                PlayerActivity.musicList[PlayerActivity.songPosition].title
+            if (!PlayerActivity.playingFromDirectoryIntent) {
+                MainActivity.mainCurrent.text =
+                    PlayerActivity.musicList[PlayerActivity.songPosition].title
+            }
             serviceCreateMediaPlayer()
         } else {
             PlayerActivity.newSongOnclick = true
             setSongPosition(increment = false)
             PlayerActivity.activeSongName.text =
                 PlayerActivity.musicList[PlayerActivity.songPosition].title
-            MainActivity.mainCurrent.text =
-                PlayerActivity.musicList[PlayerActivity.songPosition].title
+            if (!PlayerActivity.playingFromDirectoryIntent) {
+                MainActivity.mainCurrent.text =
+                    PlayerActivity.musicList[PlayerActivity.songPosition].title
+            }
             serviceCreateMediaPlayer()
         }
 
@@ -263,11 +251,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
                 )
             )
         } catch (e: Exception) {
-            //Toast.makeText( this, "Error at music service Current setup : ${e.printStackTrace()}",Toast.LENGTH_LONG ).show()
-
         }
-
     }
-
 
 }

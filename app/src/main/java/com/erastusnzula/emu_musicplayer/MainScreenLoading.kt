@@ -11,7 +11,7 @@ class MainScreenLoading:ViewModel() {
     var isLoading = loading.asStateFlow()
     init {
         viewModelScope.launch{
-            delay(1000)
+            delay(500)
             loading.value=false
         }
     }
