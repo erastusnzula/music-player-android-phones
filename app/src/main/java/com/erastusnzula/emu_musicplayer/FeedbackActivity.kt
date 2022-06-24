@@ -33,7 +33,7 @@ class FeedbackActivity : AppCompatActivity() {
             val message = message.text.toString().trim()
             val emailSubject = subject.text.toString().trim()
             val username = "nzulaerastus@gmail.com".trim()
-            val password = "gqxiyqrsjwsbtunp".trim()
+            val password = EmailPassword().password
             val network = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             if (message.isNotEmpty() && emailSubject.isNotEmpty()) {
                 if (network.activeNetworkInfo?.isConnectedOrConnecting == true) {
