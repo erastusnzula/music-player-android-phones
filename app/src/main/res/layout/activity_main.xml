@@ -15,123 +15,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
-            android:id="@+id/linearLayout2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/recyclerView"
-            tools:ignore="ContentDescription">
-
-            <LinearLayout
-                android:id="@+id/mainCurentLayout"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                android:visibility="visible">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/mainBottonCurrentPlaying"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:visibility="visible"
-                    tools:ignore="NestedWeights">
-
-                    <TextView
-                        android:id="@+id/mainCurrentPlayingSong"
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:ellipsize="marquee"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:gravity="center_vertical"
-                        android:marqueeRepeatLimit="marquee_forever"
-                        android:paddingTop="8dp"
-                        android:paddingEnd="8dp"
-                        android:scrollHorizontally="true"
-                        android:singleLine="true"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-                        android:textColor="@color/green"
-                        android:textSize="16sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@+id/cardView"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/cardView"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_margin="5dp"
-                        android:layout_weight="1"
-                        app:cardCornerRadius="8dp"
-                        app:cardElevation="8dp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                        <ImageView
-                            android:id="@+id/imageView"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerInside"
-                            app:srcCompat="@drawable/ic_song_icon" />
-                    </androidx.cardview.widget.CardView>
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/mainBottomControls"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <ImageButton
-                    android:id="@+id/previous"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/image_buttons"
-                    android:padding="8dp"
-                    app:srcCompat="@drawable/ic_baseline_skip_previous_24"
-                    tools:ignore="TouchTargetSizeCheck" />
-
-                <ImageButton
-                    android:id="@+id/playButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/image_buttons"
-                    android:padding="8dp"
-                    app:srcCompat="@drawable/ic_baseline_play_circle_outline_24"
-                    tools:ignore="TouchTargetSizeCheck" />
-
-                <ImageButton
-                    android:id="@+id/next"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/image_buttons"
-                    android:padding="8dp"
-                    app:srcCompat="@drawable/ic_baseline_skip_next_24"
-                    tools:ignore="TouchTargetSizeCheck,ImageContrastCheck" />
-            </LinearLayout>
-
-        </LinearLayout>
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="0dp"
@@ -140,25 +23,23 @@
             android:layout_marginEnd="8dp"
             android:scrollbarThumbVertical="@drawable/scrollbar_icon"
             android:scrollbars="vertical"
-            app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/total" />
-
-        <TextView
-            android:id="@+id/total"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:gravity="center"
-            android:text="Total Songs : "
-            app:layout_constraintBottom_toTopOf="@+id/recyclerView"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/currentPlaying"
+            android:name="com.erastusnzula.emu_musicplayer.CurrentPlayingFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout="@layout/fragment_current_playing" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigationView"

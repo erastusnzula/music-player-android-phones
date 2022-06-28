@@ -28,4 +28,6 @@
     <string name="stop_in_50_minutes">50 minutes</string>
     <string name="stop_in_1_hour">1 hour</string>
     <string name="song_search">Search</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -47,9 +47,8 @@ class FavouriteAdapter(private var context: Context, private var musicList: Arra
                     PlayerActivity.playingFromFavourite = true
                     val intent = Intent(context, PlayerActivity::class.java)
                     intent.putExtra("index", position)
-                    intent.putExtra("sameSong", false)
                     intent.putExtra("orientation", FavouriteActivity.favoriteOrientation)
-                    intent.putExtra("class", "MainActivity")
+                    intent.putExtra("class", "currentPlaying")
                     ContextCompat.startActivity(context, intent, null)
                 } else {
                     val intent = Intent(context, PlayerActivity::class.java)

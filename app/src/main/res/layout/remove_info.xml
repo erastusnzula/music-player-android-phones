@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/black"
+    android:orientation="horizontal">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/removeLong"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:icon="@drawable/ic_baseline_delete_24"
+        android:text="Remove"
+        app:iconGravity="top"
+        android:background="?attr/selectableItemBackground"
+        android:textAllCaps="false"
+        android:layout_weight="1"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:textColor="@color/white"
+        app:iconTint="@color/white"/>
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/infoBtn"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:icon="@drawable/ic_baseline_info_24"
+        android:text="Info"
+        app:iconGravity="top"
+        android:background="?attr/selectableItemBackground"
+        android:textAllCaps="false"
+        android:layout_weight="1"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:textColor="@color/white"
+        app:iconTint="@color/white"/>
+
+
+
+
+</LinearLayout>

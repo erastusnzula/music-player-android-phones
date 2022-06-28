@@ -32,40 +32,26 @@ import com.google.gson.reflect.TypeToken
 import java.io.File
 import kotlin.system.exitProcess
 
-class MainActivity : AppCompatActivity(), MediaPlayer.OnCompletionListener {
+class MainActivity : AppCompatActivity() {
     private lateinit var drawer: DrawerLayout
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: MusicRecyclerAdapter
-    private lateinit var totalSongs: TextView
     private val viewModel: MainScreenLoading by viewModels()
     private lateinit var navigationView: NavigationView
     private var exitDelay: Long = 0
-    private lateinit var bottomConstrainedLayout: ConstraintLayout
 
 
     companion object {
         var musicList: ArrayList<MusicFile> = ArrayList()
-
-        @SuppressLint("StaticFieldLeak")
-        lateinit var mainCurrent: TextView
-
-        @SuppressLint("StaticFieldLeak")
-        lateinit var mainPrevious: ImageButton
-
-        @SuppressLint("StaticFieldLeak")
-        lateinit var mainNext: ImageButton
-
-        @SuppressLint("StaticFieldLeak")
-        lateinit var playButton: ImageButton
-
-        @SuppressLint("StaticFieldLeak")
-        lateinit var mainBottomControls: LinearLayout
-
-        @SuppressLint("StaticFieldLeak")
-        lateinit var mainCurrentLayout: LinearLayout
         var orientation = Configuration.ORIENTATION_PORTRAIT
-        var themeIndex: Int = 0
+        var sortOrder = 0
+        var orderList = arrayOf(
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.SIZE + " DESC",
+            MediaStore.Audio.Media.DATE_ADDED + " DESC"
+        )
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,22 +61,12 @@ class MainActivity : AppCompatActivity(), MediaPlayer.OnCompletionListener {
                 viewModel.isLoading.value
             }
         }
-        val themeEditor = getSharedPreferences("THEMES", MODE_PRIVATE)
-        themeIndex = themeEditor.getInt("themeIndex", 0)
+
         setContentView(R.layout.activity_main)
-        supportActionBar?.title = "All songs"
+        supportActionBar?.title = "songs"
         recyclerView = findViewById(R.id.recyclerView)
-        mainBottomControls = findViewById(R.id.mainBottomControls)
-        mainCurrentLayout = findViewById(R.id.mainCurentLayout)
-        mainCurrent = findViewById(R.id.mainCurrentPlayingSong)
-        mainCurrent.isSelected = true
-        mainPrevious = findViewById(R.id.previous)
-        mainNext = findViewById(R.id.next)
-        totalSongs = findViewById(R.id.total)
-        playButton = findViewById(R.id.playButton)
         navigationView = findViewById(R.id.navigationView)
         drawer = findViewById(R.id.drawer)
-        bottomConstrainedLayout = findViewById(R.id.mainBottonCurrentPlaying)
         toggle = ActionBarDrawerToggle(this@MainActivity, drawer, R.string.open, R.string.close)
         drawer.addDrawerListener(toggle)
         toggle.syncState()
@@ -115,37 +91,6 @@ class MainActivity : AppCompatActivity(), MediaPlayer.OnCompletionListener {
                 PlaylistActivity.musicPlaylist = dataPlaylist
             }
 
-        }
-        mainCurrent.setOnClickListener { currentSongClicked() }
-
-        bottomConstrainedLayout.setOnClickListener { currentSongClicked() }
-
-        mainNext.setOnClickListener { checkPlayPreviousNextSong(increment = true) }
-
-        mainPrevious.setOnClickListener { checkPlayPreviousNextSong(increment = false) }
-
-        if (PlayerActivity.isPlaying) {
-            try {
-                mainCurrent.setTextColor(ContextCompat.getColor(this, R.color.green))
-                mainBottomControls.visibility = View.VISIBLE
-                mainCurrentLayout.visibility = View.VISIBLE
-                mainCurrent.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
-                playButton.setImageResource(R.drawable.ic_baseline_pause_24)
-                playButton.setOnClickListener {
-                    playPauseMode()
-                }
-            } catch (e: Exception) {
-            }
-
-        } else if (PlayerActivity.isPlayerActive) {
-            mainCurrent.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
-            mainBottomControls.visibility = View.VISIBLE
-            mainCurrentLayout.visibility = View.VISIBLE
-            playButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
-            mainCurrent.setTextColor(ContextCompat.getColor(this, R.color.green))
-            playButton.setOnClickListener {
-                playPauseMode()
-            }
         }
 
 
@@ -241,16 +186,6 @@ class MainActivity : AppCompatActivity(), MediaPlayer.OnCompletionListener {
         }
     }
 
-    override fun onCompletion(mp: MediaPlayer?) {
-        PlayerActivity.newSongOnclick = true
-        try {
-            checkPlayPreviousNextSong(increment = true)
-            //Toast.makeText(this, "main on complete",Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            PlayerActivity.musicService!!.playNextSong(increment = true)
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         try {
@@ -272,74 +207,14 @@ class MainActivity : AppCompatActivity(), MediaPlayer.OnCompletionListener {
         val jsonStringPlaylist = GsonBuilder().create().toJson(PlaylistActivity.musicPlaylist)
         editor.putString("PlaylistSongs", jsonStringPlaylist)
         editor.apply()
-    }
-
-    private fun playPauseMode() {
-        try {
-            if (PlayerActivity.isPlaying) {
-                PlayerActivity.musicService!!.mediaPlayer!!.pause()
-                PlayerActivity.isPlaying = false
-                playButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
-                PlayerActivity.musicService!!.showNotification(
-                    R.drawable.ic_baseline_play_circle_filled_24,
-                    0F
-                )
-            } else {
-                PlayerActivity.musicService!!.mediaPlayer!!.start()
-                PlayerActivity.musicService!!.mediaPlayer!!.setOnCompletionListener(this)
-                PlayerActivity.isPlaying = true
-                playButton.setImageResource(R.drawable.ic_baseline_pause_24)
-                PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24, 1F)
-            }
-        } catch (e: Exception) {
-            return
-
+        val sortEditor = getSharedPreferences("SORT", MODE_PRIVATE)
+        val sortValue = sortEditor.getInt("sortOrder", 0)
+        if (sortOrder != sortValue){
+            sortOrder=sortValue
+            musicList=getAllAudioFiles()
+            adapter.updateMusicList(musicList)
         }
-    }
-
-
-    private fun currentSongClicked() {
-        if (mainCurrent.text.isNotBlank()) {
-            val intent = Intent(this, PlayerActivity::class.java)
-            intent.putExtra("index", PlayerActivity.songPosition)
-            intent.putExtra("sameSong", false)
-            intent.putExtra("orientation", orientation)
-            intent.putExtra("class", "MainActivity")
-            ContextCompat.startActivity(this, intent, null)
-        } else {
-            return
-        }
-    }
-
-
-    private fun checkPlayPreviousNextSong(increment: Boolean) {
-        PlayerActivity.musicService!!.newSongOnClick = true
-        setSongPosition(increment = increment)
-        PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24, 1F)
-        playButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        try {
-            Glide.with(this)
-                .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
-                .apply(RequestOptions().placeholder(R.drawable.ic_song_icon))
-                .into(PlayerActivity.activeAlbum)
-
-            PlayerActivity.activeSongName.text =
-                PlayerActivity.musicList[PlayerActivity.songPosition].title
-            PlayerActivity.songEndTime.text =
-                formatDuration(PlayerActivity.musicList[PlayerActivity.songPosition].duration)
-            mainCurrent.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
-            PlayerActivity.musicService!!.serviceCreateMediaPlayer()
-            PlayerActivity.favouriteIndex =
-                checkIfIsFavourite(PlayerActivity.musicList[PlayerActivity.songPosition].id)
-            if (PlayerActivity.isFavourite) {
-                PlayerActivity.favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
-            } else {
-                PlayerActivity.favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
-            }
-        } catch (e: Exception) {
-        }
-
+        if(PlayerActivity.musicService != null) CurrentPlayingFragment.constrainedLayout.visibility = View.VISIBLE
     }
 
 
@@ -347,13 +222,15 @@ class MainActivity : AppCompatActivity(), MediaPlayer.OnCompletionListener {
     private fun setupInitialization() {
         recyclerView.setHasFixedSize(true)
         recyclerView.setItemViewCacheSize(20)
+        //musicList.sortBy { it.title }
+        val sortEditor = getSharedPreferences("SORT", MODE_PRIVATE)
+        sortOrder = sortEditor.getInt("sortOrder", 0)
         musicList = getAllAudioFiles()
-        musicList.sortBy { it.title }
         musicList.distinct()
+        //supportActionBar?.title="songs: ${musicList.size}"
         adapter = MusicRecyclerAdapter(this, musicList)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
-        totalSongs.text = "Total songs: " + musicList.size.toString()
 
 
     }
@@ -394,7 +271,7 @@ class MainActivity : AppCompatActivity(), MediaPlayer.OnCompletionListener {
             projection,
             selection,
             null,
-            MediaStore.Audio.Media.DATE_ADDED + " DESC",
+            orderList[sortOrder],
             null
         )
         if (cursor != null) {

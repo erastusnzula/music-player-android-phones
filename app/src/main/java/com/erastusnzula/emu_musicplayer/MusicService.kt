@@ -4,6 +4,7 @@ package com.erastusnzula.emu_musicplayer
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.AudioManager
@@ -12,6 +13,8 @@ import android.os.*
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.telephony.PhoneStateListener
+import android.telephony.TelephonyManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -19,11 +22,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 
 
-class MusicService : Service(), MediaPlayer.OnCompletionListener {
+class MusicService : Service(), AudioManager.OnAudioFocusChangeListener {
     private var myBinder = MyBinder()
     var mediaPlayer: MediaPlayer? = null
     private lateinit var mediaSession: MediaSessionCompat
-    var newSongOnClick = false
+    lateinit var audioManager: AudioManager
     private lateinit var runnable: Runnable
 
     override fun onBind(intent: Intent?): IBinder {
@@ -32,32 +35,15 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     }
 
-    override fun onCompletion(mp: MediaPlayer?) {
-        PlayerActivity.newSongOnclick = true
-        try {
-            setSongPosition(increment = true)
-            MainActivity.mainCurrent.text =
-                PlayerActivity.musicList[PlayerActivity.songPosition].title
-            serviceCreateMediaPlayer()
-            try {
-                currentPlayingSongSetup()
-            } catch (e: Exception) {
-                return
-            }
-        } catch (e: Exception) {
-            playNextSong(increment = true)
-        }
-    }
-
-
     inner class MyBinder : Binder() {
         fun currentServices(): MusicService {
             return this@MusicService
         }
     }
 
+
     @SuppressLint("UnspecifiedImmutableFlag")
-    fun showNotification(playPauseIcon: Int, playBackSpeed: Float) {
+    fun showNotification(playPauseIcon: Int) {
 
         val intent = Intent(baseContext, MainActivity::class.java)
         val contentIntent = PendingIntent.getActivity(this, 0, intent, 0)
@@ -105,9 +91,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
 
         val notification = NotificationCompat.Builder(baseContext, ApplicationClass.CHANNEL_ID)
-        if (!PlayerActivity.playingFromDirectoryIntent) {
-            notification.setContentIntent(contentIntent)
-        }
+        notification.setContentIntent(contentIntent)
         notification.setSilent(true)
         notification.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         notification.setContentTitle(PlayerActivity.musicList[PlayerActivity.songPosition].title)
@@ -133,6 +117,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val playBackSpeed = if (PlayerActivity.isPlaying) 1F else 0F
             mediaSession.setMetadata(
                 MediaMetadataCompat.Builder()
                     .putLong(
@@ -141,16 +126,30 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
                     )
                     .build()
             )
-            mediaSession.setPlaybackState(
-                PlaybackStateCompat.Builder()
-                    .setState(
-                        PlaybackStateCompat.STATE_PLAYING,
-                        mediaPlayer!!.currentPosition.toLong(),
-                        playBackSpeed
-                    )
-                    .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
-                    .build()
-            )
+            val playBackState = PlaybackStateCompat.Builder()
+                .setState(
+                    PlaybackStateCompat.STATE_PLAYING,
+                    mediaPlayer!!.currentPosition.toLong(),
+                    playBackSpeed
+                )
+                .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
+                .build()
+            mediaSession.setPlaybackState(playBackState)
+            mediaSession.setCallback(object : MediaSessionCompat.Callback() {
+                override fun onSeekTo(pos: Long) {
+                    super.onSeekTo(pos)
+                    mediaPlayer!!.seekTo(pos.toInt())
+                    val newPlayBackState = PlaybackStateCompat.Builder()
+                        .setState(
+                            PlaybackStateCompat.STATE_PLAYING,
+                            mediaPlayer!!.currentPosition.toLong(),
+                            playBackSpeed
+                        )
+                        .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
+                        .build()
+                    mediaSession.setPlaybackState(newPlayBackState)
+                }
+            })
 
         }
         startForeground(7, notification.build())
@@ -160,40 +159,25 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     fun serviceCreateMediaPlayer() {
         try {
-            when {
-                PlayerActivity.musicService!!.mediaPlayer == null -> {
-                    servicePlaySong()
-                }
-                newSongOnClick -> {
-                    PlayerActivity.musicService!!.mediaPlayer!!.stop()
-                    PlayerActivity.musicService!!.mediaPlayer!!.release()
-                    servicePlaySong()
-                }
-                else -> {
-                    return
-                }
-            }
+            if (PlayerActivity.musicService!!.mediaPlayer == null) PlayerActivity.musicService!!.mediaPlayer =
+                MediaPlayer()
+            PlayerActivity.musicService!!.mediaPlayer!!.reset()
+            PlayerActivity.musicService!!.mediaPlayer!!.setDataSource(PlayerActivity.musicList[PlayerActivity.songPosition].path)
+            PlayerActivity.musicService!!.mediaPlayer!!.prepare()
+            PlayerActivity.isPlaying = true
+            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
+            PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
+            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+            PlayerActivity.songStartTime.text =
+                formatDuration(mediaPlayer!!.currentPosition.toLong())
+            PlayerActivity.songEndTime.text = formatDuration(mediaPlayer!!.duration.toLong())
+            PlayerActivity.seekBar.progress = 0
+            PlayerActivity.seekBar.max = mediaPlayer!!.duration
+            PlayerActivity.currentPlayingID =
+                PlayerActivity.musicList[PlayerActivity.songPosition].id
+
         } catch (e: Exception) {
             return
-        }
-    }
-
-    private fun servicePlaySong() {
-        PlayerActivity.musicService!!.mediaPlayer = MediaPlayer()
-        PlayerActivity.musicService!!.mediaPlayer!!.setDataSource(PlayerActivity.musicList[PlayerActivity.songPosition].path)
-        PlayerActivity.musicService!!.mediaPlayer!!.prepare()
-        PlayerActivity.musicService!!.mediaPlayer!!.start()
-        PlayerActivity.isPlaying = true
-        PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24, 1F)
-        PlayerActivity.songStartTime.text = formatDuration(mediaPlayer!!.currentPosition.toLong())
-        PlayerActivity.songEndTime.text = formatDuration(mediaPlayer!!.duration.toLong())
-        PlayerActivity.seekBar.progress = 0
-        PlayerActivity.seekBar.max = mediaPlayer!!.duration
-        PlayerActivity.musicService!!.mediaPlayer!!.setOnCompletionListener(this)
-        PlayerActivity.currentPlayingID = PlayerActivity.musicList[PlayerActivity.songPosition].id
-        if (!PlayerActivity.playingFromDirectoryIntent) {
-            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
         }
     }
 
@@ -208,50 +192,26 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
 
-    fun playNextSong(increment: Boolean) {
-        if (increment) {
-            PlayerActivity.newSongOnclick = true
-            setSongPosition(increment = true)
-            PlayerActivity.activeSongName.text =
-                PlayerActivity.musicList[PlayerActivity.songPosition].title
-            if (!PlayerActivity.playingFromDirectoryIntent) {
-                MainActivity.mainCurrent.text =
-                    PlayerActivity.musicList[PlayerActivity.songPosition].title
-            }
-            serviceCreateMediaPlayer()
+    override fun onAudioFocusChange(focusChange: Int) {
+        if (focusChange <= 0) {
+            PlayerActivity.isPlaying = false
+            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
+            mediaPlayer!!.pause()
+            showNotification(R.drawable.ic_baseline_play_circle_filled_24)
+            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
+
         } else {
-            PlayerActivity.newSongOnclick = true
-            setSongPosition(increment = false)
-            PlayerActivity.activeSongName.text =
-                PlayerActivity.musicList[PlayerActivity.songPosition].title
-            if (!PlayerActivity.playingFromDirectoryIntent) {
-                MainActivity.mainCurrent.text =
-                    PlayerActivity.musicList[PlayerActivity.songPosition].title
-            }
-            serviceCreateMediaPlayer()
-        }
-
-    }
-
-
-    private fun currentPlayingSongSetup() {
-        try {
-            Glide.with(this)
-                .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
-                .apply(RequestOptions().placeholder(R.drawable.ic_song_icon))
-                .into(PlayerActivity.activeAlbum)
-
-            PlayerActivity.activeSongName.text =
-                PlayerActivity.musicList[PlayerActivity.songPosition].title
-            if (PlayerActivity.isLooping) PlayerActivity.repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_one_24)
-            if (PlayerActivity.isShuffle) PlayerActivity.shuffleButton.setColorFilter(
-                ContextCompat.getColor(
-                    this,
-                    R.color.green
-                )
-            )
-        } catch (e: Exception) {
+            PlayerActivity.isPlaying = true
+            mediaPlayer!!.start()
+            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
+            showNotification(R.drawable.ic_baseline_pause_24)
+            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
         }
     }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
+
 
 }

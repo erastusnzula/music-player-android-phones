@@ -1,9 +1,11 @@
 package com.erastusnzula.emu_musicplayer
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +16,9 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 
 class MusicRecyclerAdapter(
     private val context: Context,
@@ -45,6 +50,7 @@ class MusicRecyclerAdapter(
         private val songAlbum: TextView = itemView.findViewById(R.id.singleAlbumName)
         private val duration: TextView = itemView.findViewById(R.id.singleTotalSongLength)
         private val art: ImageView = itemView.findViewById(R.id.singleAlbumImageView)
+        private val root: View = itemView.rootView
 
         @SuppressLint("SetTextI18n")
         fun bind(position: Int) {
@@ -55,46 +61,89 @@ class MusicRecyclerAdapter(
                 songAlbum.text = "<Unknown>"
             }
             duration.text = formatDuration(musicList[position].duration)
+            val pathSong = musicList[position].path
+            val pos = position
             Glide.with(context)
                 .load(musicList[position].art)
-                .apply(RequestOptions().placeholder(R.drawable.music_player_icon))
+                .apply(RequestOptions().placeholder(R.drawable.music_player))
                 .into(art)
-            itemView.setOnClickListener {
-                when {
-                    musicList[position].id == PlayerActivity.currentPlayingID -> {
-                        PlayerActivity.playingFromFavourite = false
-                        val intent = Intent(context, PlayerActivity::class.java)
-                        intent.putExtra("index", position)
-                        intent.putExtra("sameSong", false)
-                        intent.putExtra("orientation", MainActivity.orientation)
-                        intent.putExtra("class", "MainActivity")
-                        ContextCompat.startActivity(context, intent, null)
+            if (!selectionActivity) {
+                root.setOnLongClickListener {
+                    val layout = LayoutInflater.from(context).inflate(R.layout.remove_info, null)
+                    val remove = layout.findViewById<MaterialButton>(R.id.removeLong)
+                    val info = layout.findViewById<MaterialButton>(R.id.infoBtn)
+                    val dialog = MaterialAlertDialogBuilder(context)
+                    dialog.setView(layout)
+                    dialog.create()
+                    dialog.show()
+                    remove.setOnClickListener {
+                        musicList.removeAt(pos)
+                        Snackbar.make(root, "Removed successfully", 1000).show()
+                        notifyDataSetChanged()
                     }
-                    playlistDetailsActivity -> {
-                        val intent = Intent(context, PlayerActivity::class.java)
-                        intent.putExtra("index", position)
-                        intent.putExtra("orientation", MainActivity.orientation)
-                        intent.putExtra("class", "PlaylistDetails")
-                        ContextCompat.startActivity(context, intent, null)
+                    info.setOnClickListener {
+                        val infoLayout =
+                            LayoutInflater.from(context).inflate(R.layout.song_information, null)
+                        val name = infoLayout.findViewById<TextView>(R.id.songTitleName)
+                        val songDuration = infoLayout.findViewById<TextView>(R.id.songDuration)
+                        val location = infoLayout.findViewById<TextView>(R.id.songLocation)
 
+                        val alert = AlertDialog.Builder(context)
+                        alert.setView(infoLayout)
+                        name.text = name.text.toString() + "\n" + songName.text
+                        songDuration.text = songDuration.text.toString() + "\n" + duration.text
+                        location.text = location.text.toString() + "\n" + pathSong
+                        alert.show()
                     }
-                    selectionActivity -> {
-                        if (addSongToPlaylist(musicList[position])) {
-                            itemView.setBackgroundColor(ContextCompat.getColor(context,R.color.purple_200))
-                            countSelected +=1
-                            SelectionActivity.selectionTotalSelected.text=countSelected.toString()
+                    true
 
+                }
 
-                        }else{
-                            itemView.setBackgroundColor(ContextCompat.getColor(context,R.color.white))
+            }
+
+            when {
+                playlistDetailsActivity -> {
+                    root.setOnClickListener {
+                        when (musicList[position].id) {
+                            PlayerActivity.currentPlayingID -> {
+                                sendIntent("currentPlaying", pos = position)
+                            }
+                            else -> sendIntent(className = "PlaylistDetails", pos = position)
                         }
                     }
-                    else -> {
-                        val intent = Intent(context, PlayerActivity::class.java)
-                        intent.putExtra("index", position)
-                        intent.putExtra("orientation", MainActivity.orientation)
-                        intent.putExtra("class", "MusicRecyclerAdapter")
-                        ContextCompat.startActivity(context, intent, null)
+                }
+                selectionActivity -> {
+                    root.setOnClickListener {
+                        if (addSongToPlaylist(musicList[position])) {
+                            itemView.setBackgroundColor(
+                                ContextCompat.getColor(
+                                    context,
+                                    R.color.purple_200
+                                )
+                            )
+                            countSelected += 1
+                            SelectionActivity.selectionTotalSelected.text =
+                                countSelected.toString()
+
+                        } else {
+                            itemView.setBackgroundColor(
+                                ContextCompat.getColor(
+                                    context,
+                                    R.color.white
+                                )
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    root.setOnClickListener {
+                        when (musicList[position].id) {
+                            PlayerActivity.currentPlayingID -> {
+                                sendIntent("currentPlaying", pos = position)
+                            }
+                            else -> sendIntent("MusicRecyclerAdapter", pos = position)
+                        }
+
                     }
                 }
 
@@ -106,27 +155,48 @@ class MusicRecyclerAdapter(
 
     }
 
+    private fun sendIntent(className: String, pos: Int) {
+        val intent = Intent(context, PlayerActivity::class.java)
+        intent.putExtra("index", pos)
+        intent.putExtra("orientation", MainActivity.orientation)
+        intent.putExtra("class", className)
+        ContextCompat.startActivity(context, intent, null)
+    }
+
     @SuppressLint("SetTextI18n")
     private fun addSongToPlaylist(song: MusicFile): Boolean {
         PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist.forEachIndexed { index, musicFile ->
             if (song.id == musicFile.id) {
-                Toast.makeText(context, "Song already added",Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Song already added", Toast.LENGTH_LONG).show()
                 return false
             }
         }
         SelectionActivity.selectionSubmitButton.setOnClickListener {
-            val intent = Intent(context,PlaylistActivity::class.java)
-            ContextCompat.startActivity(context,intent,null)
-            }
-        PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist.add(song)
+            val intent = Intent(context, PlaylistActivity::class.java)
+            ContextCompat.startActivity(context, intent, null)
+        }
+        PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist.add(
+            song
+        )
+
         return true
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun refreshPlaylist(){
-        musicList= ArrayList()
-        musicList=PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist
+    fun refreshPlaylist() {
+        musicList = ArrayList()
+        musicList =
+            PlaylistActivity.musicPlaylist.reference[PlaylistDetailsActivity.currentPlaylistPosition].playlist
         notifyDataSetChanged()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateMusicList(list: ArrayList<MusicFile>) {
+        musicList = ArrayList()
+        musicList.addAll(list)
+        notifyDataSetChanged()
+
+
     }
 
 }

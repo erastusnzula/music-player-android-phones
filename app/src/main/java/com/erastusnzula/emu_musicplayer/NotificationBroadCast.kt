@@ -36,31 +36,30 @@ class NotificationBroadCast:BroadcastReceiver() {
     private fun playSong(){
         PlayerActivity.isPlaying=true
         PlayerActivity.musicService!!.mediaPlayer!!.start()
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24,1F)
+        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
         PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        if (!PlayerActivity.playingFromDirectoryIntent) {
-            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        }
+        try {
+            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+        }catch (e:Exception){}
     }
 
     private fun pauseSong(){
         PlayerActivity.isPlaying=false
         PlayerActivity.musicService!!.mediaPlayer!!.pause()
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_play_circle_filled_24,0F)
+        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_play_circle_filled_24)
         PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
-        if (!PlayerActivity.playingFromDirectoryIntent) {
-            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
-        }
+        try {
+            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
+        }catch(e:Exception){}
     }
 
     private fun previousNextSong(increment: Boolean, context: Context){
-        PlayerActivity.musicService!!.newSongOnClick=true
         setSongPosition(increment=increment)
         PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24,1F)
-        if (!PlayerActivity.playingFromDirectoryIntent) {
-            MainActivity.playButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        }
+        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
+        CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+        CurrentPlayingFragment.currentSong.text=PlayerActivity.musicList[PlayerActivity.songPosition].title
+
         try {
             Glide.with(context)
                 .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
@@ -69,11 +68,8 @@ class NotificationBroadCast:BroadcastReceiver() {
 
             PlayerActivity.activeSongName.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
             PlayerActivity.songEndTime.text = formatDuration(PlayerActivity.musicList[PlayerActivity.songPosition].duration)
-            if(!PlayerActivity.playingFromDirectoryIntent) {
-                MainActivity.mainCurrent.text =
-                    PlayerActivity.musicList[PlayerActivity.songPosition].title
-            }
             PlayerActivity.musicService!!.serviceCreateMediaPlayer()
+            playSong()
             PlayerActivity.favouriteIndex= checkIfIsFavourite(PlayerActivity.musicList[PlayerActivity.songPosition].id)
             if (PlayerActivity.isFavourite) {
                 PlayerActivity.favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
