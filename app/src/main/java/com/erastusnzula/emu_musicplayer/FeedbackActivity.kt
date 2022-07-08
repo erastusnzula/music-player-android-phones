@@ -3,6 +3,7 @@ package com.erastusnzula.emu_musicplayer
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,10 +11,13 @@ import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.viewModelScope
 import java.util.*
 import javax.mail.*
 import javax.mail.internet.*
+import kotlinx.coroutines.*
 
 class FeedbackActivity : AppCompatActivity() {
     private lateinit var subject: EditText
@@ -37,46 +41,33 @@ class FeedbackActivity : AppCompatActivity() {
             val network = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             if (message.isNotEmpty() && emailSubject.isNotEmpty()) {
                 if (network.activeNetworkInfo?.isConnectedOrConnecting == true) {
-                    Thread {
-                        try {
-                            val prop = Properties()
-                            prop["mail.smtp.auth"] = "true"
-                            prop["mail.smtp.starttls.enable"] = "true"
-                            prop["mail.smtp.host"] = "smtp.gmail.com"
-                            prop["mail.smtp.port"] = "587"
-                            val session = Session.getInstance(prop, object : Authenticator() {
-                                override fun getPasswordAuthentication(): PasswordAuthentication {
-                                    return PasswordAuthentication(username, password)
-                                }
-                            })
-
-                            val mail = MimeMessage(session)
-                            mail.subject = emailSubject
-                            mail.setText(message)
-                            mail.setFrom(InternetAddress(username))
-                            mail.setRecipients(
-                                Message.RecipientType.TO,
-                                InternetAddress.parse(username)
-                            )
-                            Transport.send(mail)
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                this,
-                                "Failed to send message, try again",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }.start()
-                    sentEmailConfirmation()
-
-                }else{
-                    Toast.makeText(this, "No active network connection available.", Toast.LENGTH_LONG).show()
+                    val intent = Intent(Intent.ACTION_SEND)
+                    intent.data = Uri.parse("mailto")
+                    intent.type="message/rfc822"
+                    intent.putExtra(Intent.EXTRA_EMAIL, arrayOf("nzulaerastus@gmail.com"))
+                    intent.putExtra(Intent.EXTRA_SUBJECT, emailSubject)
+                    intent.putExtra(Intent.EXTRA_TEXT, message)
+                    try{
+                        startActivity(Intent.createChooser(intent,"Choose email host"))
+                    }catch (e:Exception){
+                        Toast.makeText(this, "Error", Toast.LENGTH_LONG).show()
+                    }
+                    finish()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "No active network connection available.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
-            }else{
-                Toast.makeText(this, "Subject and message can't be empty.", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "Subject and message can't be empty.", Toast.LENGTH_LONG)
+                    .show()
             }
         }
     }
+
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
@@ -86,16 +77,46 @@ class FeedbackActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun sentEmailConfirmation(){
-        val dialog = AlertDialog.Builder(this)
-        dialog.setView(LayoutInflater.from(this).inflate(R.layout.feedback_sent, null))
-        dialog.setTitle("Feedback")
-        dialog.setCancelable(false)
-        dialog.setPositiveButton("Okay"){dialogDismiss,_->
-            dialogDismiss.dismiss()
-            finish()
-            startActivity(Intent(this, MainActivity::class.java))
+    private fun sendEmailsThread(
+        username: String,
+        password: String,
+        emailSubject: String,
+        message: String
+    ) {
+        try {
+            val prop = Properties()
+            prop["mail.smtp.auth"] = "true"
+            prop["mail.smtp.starttls.enable"] = "true"
+            prop["mail.smtp.host"] = "smtp.gmail.com"
+            prop["mail.smtp.port"] = "587"
+            val session = Session.getInstance(prop, object : Authenticator() {
+                override fun getPasswordAuthentication(): PasswordAuthentication {
+                    return PasswordAuthentication(username, password)
+                }
+            })
+
+            val mail = MimeMessage(session)
+            mail.subject = emailSubject
+            mail.setText(message)
+            mail.setFrom(InternetAddress(username))
+            mail.setRecipients(
+                Message.RecipientType.TO,
+                InternetAddress.parse(username)
+            )
+            Toast.makeText(
+                this,
+                "sending.",
+                Toast.LENGTH_LONG
+            ).show()
+            Transport.send(mail)
+        } catch (e: Exception) {
+            Toast.makeText(
+                this,
+                "$e",
+                Toast.LENGTH_LONG
+            ).show()
         }
-        dialog.show()
+        return
+
     }
 }

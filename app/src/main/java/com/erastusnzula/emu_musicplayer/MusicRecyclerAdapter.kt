@@ -69,32 +69,39 @@ class MusicRecyclerAdapter(
                 .into(art)
             if (!selectionActivity) {
                 root.setOnLongClickListener {
-                    val layout = LayoutInflater.from(context).inflate(R.layout.remove_info, null)
-                    val remove = layout.findViewById<MaterialButton>(R.id.removeLong)
-                    val info = layout.findViewById<MaterialButton>(R.id.infoBtn)
-                    val dialog = MaterialAlertDialogBuilder(context)
-                    dialog.setView(layout)
-                    dialog.create()
-                    dialog.show()
-                    remove.setOnClickListener {
-                        musicList.removeAt(pos)
-                        Snackbar.make(root, "Removed successfully", 1000).show()
-                        notifyDataSetChanged()
-                    }
-                    info.setOnClickListener {
-                        val infoLayout =
-                            LayoutInflater.from(context).inflate(R.layout.song_information, null)
-                        val name = infoLayout.findViewById<TextView>(R.id.songTitleName)
-                        val songDuration = infoLayout.findViewById<TextView>(R.id.songDuration)
-                        val location = infoLayout.findViewById<TextView>(R.id.songLocation)
+                    val dialog = AlertDialog.Builder(context)
+                    dialog.setTitle(" Song Actions")
+                    dialog.setIcon(R.drawable.ic_song_icon)
+                    dialog.setItems(arrayOf("Remove song","View song Details")){dismiss, which->
+                        when (which){
+                            0->{
+                                musicList.removeAt(pos)
+                                Snackbar.make(root, "Removed successfully", 1000).show()
+                                notifyDataSetChanged()
+                                dismiss.dismiss()
+                            }
+                            1->{
+                                val infoLayout =
+                                    LayoutInflater.from(context).inflate(R.layout.song_information, null)
+                                val name = infoLayout.findViewById<TextView>(R.id.songTitleName)
+                                val songDuration = infoLayout.findViewById<TextView>(R.id.songDuration)
+                                val location = infoLayout.findViewById<TextView>(R.id.songLocation)
 
-                        val alert = AlertDialog.Builder(context)
-                        alert.setView(infoLayout)
-                        name.text = name.text.toString() + "\n" + songName.text
-                        songDuration.text = songDuration.text.toString() + "\n" + duration.text
-                        location.text = location.text.toString() + "\n" + pathSong
-                        alert.show()
+                                val alert = AlertDialog.Builder(context)
+                                alert.setView(infoLayout)
+                                name.text = name.text.toString() + "\n" + songName.text
+                                songDuration.text = songDuration.text.toString() + "\n" + duration.text
+                                location.text = location.text.toString() + "\n" + pathSong
+                                alert.setPositiveButton("Ok"){d, _->
+                                    d.dismiss()
+                                    dismiss.dismiss()
+                                }
+                                alert.show()
+
+                            }
+                        }
                     }
+                    dialog.show()
                     true
 
                 }

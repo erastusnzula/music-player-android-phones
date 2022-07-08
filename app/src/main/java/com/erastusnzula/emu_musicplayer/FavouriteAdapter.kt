@@ -43,23 +43,24 @@ class FavouriteAdapter(private var context: Context, private var musicList: Arra
                 .apply(RequestOptions().placeholder(R.drawable.music))
                 .into(favouriteImageView)
             itemView.setOnClickListener {
-                if (musicList[position].id == PlayerActivity.currentPlayingID) {
-                    PlayerActivity.playingFromFavourite = true
-                    val intent = Intent(context, PlayerActivity::class.java)
-                    intent.putExtra("index", position)
-                    intent.putExtra("orientation", FavouriteActivity.favoriteOrientation)
-                    intent.putExtra("class", "currentPlaying")
-                    ContextCompat.startActivity(context, intent, null)
-                } else {
-                    val intent = Intent(context, PlayerActivity::class.java)
-                    intent.putExtra("index", position)
-                    intent.putExtra("orientation", FavouriteActivity.favoriteOrientation)
-                    intent.putExtra("class", "FavouriteAdapter")
-                    ContextCompat.startActivity(context, intent, null)
+                when(musicList[position].id){
+                    PlayerActivity.currentPlayingID->{
+                        sendIntent(className = "currentPlaying",pos=position)
+                    }else->{
+                        sendIntent(className = "FavouriteAdapter", pos=position)
+                    }
                 }
             }
 
         }
+    }
+
+    private fun sendIntent(className: String, pos: Int) {
+        val intent = Intent(context, PlayerActivity::class.java)
+        intent.putExtra("index", pos)
+        intent.putExtra("orientation", FavouriteActivity.favoriteOrientation)
+        intent.putExtra("class", className)
+        ContextCompat.startActivity(context, intent, null)
     }
 
 }
