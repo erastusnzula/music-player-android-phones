@@ -21,7 +21,7 @@
             android:layout_marginVertical="5dp"
             android:layout_marginStart="8dp"
             app:shapeAppearanceOverlay="@style/curved"
-            app:srcCompat="@drawable/music_player" />
+            app:srcCompat="@drawable/custom_icon" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -31,11 +31,12 @@
                 android:id="@+id/singleSongName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center_vertical"
                 android:singleLine="true"
                 android:text="@string/single_song_name"
-                android:layout_marginStart="8dp"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toTopOf="@+id/singleAlbumName"
                 app:layout_constraintEnd_toStartOf="@+id/singleTotalSongLength"
                 app:layout_constraintStart_toStartOf="parent"
@@ -61,6 +62,7 @@
                 android:gravity="center"
                 android:padding="8dp"
                 android:text="@string/single_total_length"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

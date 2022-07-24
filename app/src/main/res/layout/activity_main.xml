@@ -20,7 +20,9 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginBottom="45dp"
             android:scrollbarThumbVertical="@drawable/scrollbar_icon"
             android:scrollbars="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -48,6 +50,7 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_resource"
+        android:background="@drawable/gradient_fragment"
         app:menu="@menu/nav_menu"/>
 
 </androidx.drawerlayout.widget.DrawerLayout>

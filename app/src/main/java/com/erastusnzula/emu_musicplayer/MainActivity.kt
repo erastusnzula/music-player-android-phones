@@ -227,7 +227,7 @@ class MainActivity : AppCompatActivity() {
         sortOrder = sortEditor.getInt("sortOrder", 0)
         musicList = getAllAudioFiles()
         musicList.distinct()
-        supportActionBar?.title="songs: ${musicList.size}"
+        //supportActionBar?.title="songs: ${musicList.size}"
         adapter = MusicRecyclerAdapter(this, musicList)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)

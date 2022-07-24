@@ -82,7 +82,7 @@ class PlaylistAdapter(private var context: Context, private var playList: ArrayL
             if(PlaylistActivity.musicPlaylist.reference[position].playlist.size > 0){
                 Glide.with(context)
                     .load(PlaylistActivity.musicPlaylist.reference[position].playlist[0].art)
-                    .apply(RequestOptions().placeholder(R.drawable.music_player))
+                    .apply(RequestOptions().placeholder(R.drawable.custom_icon))
                     .into(playlistImageView)
             }
 

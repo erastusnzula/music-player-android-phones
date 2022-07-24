@@ -9,15 +9,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="96dp"
+        android:background="@drawable/gradient_fragment"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:background="@drawable/gradient_fragment"
             android:padding="8dp"
             app:cardCornerRadius="8dp"
             app:cardElevation="8dp">
@@ -26,6 +27,7 @@
                 android:id="@+id/navImageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/gradient_fragment"
                 android:padding="8dp"
                 app:srcCompat="@drawable/music_player_icon"
                 tools:ignore="ContentDescription" />

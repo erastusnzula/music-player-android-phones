@@ -29,6 +29,7 @@
                 android:layout_marginStart="8dp"
                 android:gravity="center"
                 android:text="@string/active_main_song"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toTopOf="@+id/activeStartTime"
                 app:layout_constraintEnd_toStartOf="@+id/fav"
                 app:layout_constraintStart_toStartOf="parent"
@@ -105,8 +106,8 @@
             android:layout_gravity="center"
             android:foregroundGravity="center"
             app:shapeAppearanceOverlay="@style/curved"
-            app:srcCompat="@drawable/ic_song_icon"
-            app:strokeColor="@color/teal_200"
+            app:srcCompat="@drawable/custom_icon"
+            app:strokeColor="@color/purple_200"
             app:strokeWidth="2dp" />
 
     </LinearLayout>

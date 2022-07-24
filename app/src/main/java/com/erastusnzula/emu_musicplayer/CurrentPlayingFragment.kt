@@ -64,7 +64,7 @@ class CurrentPlayingFragment : Fragment() {
             currentSong.isSelected = true
             Glide.with(requireContext())
                 .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
-                .apply(RequestOptions().placeholder(R.drawable.music_player_icon).centerCrop())
+                .apply(RequestOptions().placeholder(R.drawable.custom_icon).centerCrop())
                 .into(currentPlayingImageView)
             currentSong.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
             if(PlayerActivity.isPlaying) playButtonF.setBackgroundResource(R.drawable.ic_baseline_pause_24)
@@ -75,7 +75,7 @@ class CurrentPlayingFragment : Fragment() {
     private fun playNext() {
         Glide.with(requireContext())
             .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
-            .apply(RequestOptions().placeholder(R.drawable.music_player_icon).centerCrop())
+            .apply(RequestOptions().placeholder(R.drawable.custom_icon).centerCrop())
             .into(currentPlayingImageView)
         setSongPosition(increment = true)
         currentSong.text = PlayerActivity.musicList[PlayerActivity.songPosition].title

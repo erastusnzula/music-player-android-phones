@@ -2,9 +2,11 @@ package com.erastusnzula.emu_musicplayer
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.ClipData.Item
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +27,7 @@ class MusicRecyclerAdapter(
     private var musicList: ArrayList<MusicFile>,
     private var playlistDetailsActivity: Boolean = false,
     private val selectionActivity: Boolean = false
+
 ) :
     RecyclerView.Adapter<MusicRecyclerAdapter.ViewHolder>() {
     private var countSelected = 0
@@ -65,8 +68,9 @@ class MusicRecyclerAdapter(
             val pos = position
             Glide.with(context)
                 .load(musicList[position].art)
-                .apply(RequestOptions().placeholder(R.drawable.music_player))
+                .apply(RequestOptions().placeholder(R.drawable.custom_icon))
                 .into(art)
+
             if (!selectionActivity) {
                 root.setOnLongClickListener {
                     val dialog = AlertDialog.Builder(context)
@@ -77,7 +81,7 @@ class MusicRecyclerAdapter(
                             0->{
                                 musicList.removeAt(pos)
                                 Snackbar.make(root, "Removed successfully", 1000).show()
-                                notifyDataSetChanged()
+                                notifyItemRangeChanged(0, musicList.size-1)
                                 dismiss.dismiss()
                             }
                             1->{
@@ -148,15 +152,16 @@ class MusicRecyclerAdapter(
                             PlayerActivity.currentPlayingID -> {
                                 sendIntent("currentPlaying", pos = position)
                             }
-                            else -> sendIntent("MusicRecyclerAdapter", pos = position)
+                            else -> {
+                                sendIntent("MusicRecyclerAdapter", pos = position)
+                                //songName.setTextColor(ContextCompat.getColor(context,R.color.green))
+                            }
                         }
 
                     }
                 }
 
             }
-
-
         }
 
 

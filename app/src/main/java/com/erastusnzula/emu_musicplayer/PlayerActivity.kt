@@ -221,7 +221,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             CurrentPlayingFragment.currentSong.isSelected = true
             Glide.with(applicationContext)
                 .load(musicList[songPosition].art)
-                .apply(RequestOptions().placeholder(R.drawable.music_player_icon).centerCrop())
+                .apply(RequestOptions().placeholder(R.drawable.custom_icon).centerCrop())
                 .into(CurrentPlayingFragment.currentPlayingImageView)
             CurrentPlayingFragment.currentSong.text = musicList[songPosition].title
         } catch (e: Exception) {

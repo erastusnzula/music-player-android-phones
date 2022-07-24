@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenBackground">#E5CCFF</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_baseline_music_note_24</item>
         <item name="postSplashScreenTheme">@style/Theme.EMUMusicPlayer</item>
     </style>
