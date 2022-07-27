@@ -135,7 +135,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 dialog.setTitle("Cancel music timer?")
                 dialog.setPositiveButton("Yes") { _, _ ->
                     isTimerSet = false
-                    timer.setColorFilter(ContextCompat.getColor(this, R.color.teal_200))
+                    timer.setColorFilter(ContextCompat.getColor(this, R.color.purple_500))
                 }
                 dialog.show()
             }
@@ -182,9 +182,13 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         when (item.itemId) {
             android.R.id.home -> {
                 if (directPlay){
-                    startActivity(Intent(this, MainActivity::class.java))
-                }else {
                     finish()
+                }else {
+                    try {
+                        finish()
+                    }catch (e: Exception){
+                        startActivity(Intent(this, MainActivity::class.java))
+                    }
                 }
             }
         }
@@ -272,6 +276,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
 
     private fun currentPlayingSongSetup() {
         try {
+
             Glide.with(this)
                 .load(musicList[songPosition].art)
                 .apply(RequestOptions().placeholder(R.drawable.ic_song_icon))
@@ -279,7 +284,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
 
             activeSongName.text = musicList[songPosition].title
             if (isLooping) repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_one_24)
-            if (isShuffle) shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.green))
+            if (isShuffle) shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.orange))
             if (isTimerSet) timer.setColorFilter(ContextCompat.getColor(this, R.color.purple_700))
             favouriteIndex = checkIfIsFavourite(musicList[songPosition].id)
             if (isFavourite) {
@@ -304,6 +309,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                     albumLayout.visibility = View.GONE
                 }
                 currentPlayingSongSetup()
+                //activeSongName.text = musicList[songPosition].title
                 songStartTime.text =
                     formatDuration(musicService!!.mediaPlayer!!.currentPosition.toLong())
                 songEndTime.text = formatDuration(musicService!!.mediaPlayer!!.duration.toLong())
@@ -451,12 +457,12 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
     private fun shuffle() {
         if (!isShuffle) {
             isShuffle = true
-            shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.green))
+            shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.orange))
             isLooping = false
             repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_24)
         } else {
             isShuffle = false
-            shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.teal_200))
+            shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.purple_500))
         }
     }
 
@@ -467,7 +473,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         } else {
             isLooping = true
             isShuffle = false
-            shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.teal_200))
+            shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.purple_500))
             repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_one_24)
         }
     }
@@ -502,7 +508,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 R.id.endIn50 -> 50
                 else -> 60
             }
-            timer.setColorFilter(ContextCompat.getColor(this, R.color.purple_700))
+            timer.setColorFilter(ContextCompat.getColor(this, R.color.orange))
             Toast.makeText(this, "Ending in $endTime minutes.", Toast.LENGTH_LONG).show()
             isTimerSet = true
             Thread {

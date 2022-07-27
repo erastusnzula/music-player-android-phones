@@ -22,7 +22,7 @@
 
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/infoBtn"
+        android:id="@+id/onPressInformation"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         app:icon="@drawable/ic_baseline_info_24"

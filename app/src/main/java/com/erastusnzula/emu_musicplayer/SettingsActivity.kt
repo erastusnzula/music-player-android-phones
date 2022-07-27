@@ -11,7 +11,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 
 class SettingsActivity : AppCompatActivity() {
-    private lateinit var version: TextView
+    private lateinit var version: Button
     private lateinit var sortSongs: Button
     private lateinit var changeTheme : Button
     private lateinit var leaveFeedback: Button

@@ -2,12 +2,12 @@ package com.erastusnzula.emu_musicplayer
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.ClipData.Item
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.text.SpannableStringBuilder
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +15,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.text.bold
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -65,7 +66,6 @@ class MusicRecyclerAdapter(
             }
             duration.text = formatDuration(musicList[position].duration)
             val pathSong = musicList[position].path
-            val pos = position
             Glide.with(context)
                 .load(musicList[position].art)
                 .apply(RequestOptions().placeholder(R.drawable.custom_icon))
@@ -73,39 +73,44 @@ class MusicRecyclerAdapter(
 
             if (!selectionActivity) {
                 root.setOnLongClickListener {
-                    val dialog = AlertDialog.Builder(context)
-                    dialog.setTitle(" Song Actions")
-                    dialog.setIcon(R.drawable.ic_song_icon)
-                    dialog.setItems(arrayOf("Remove song","View song Details")){dismiss, which->
-                        when (which){
-                            0->{
-                                musicList.removeAt(pos)
-                                Snackbar.make(root, "Removed successfully", 1000).show()
-                                notifyItemRangeChanged(0, musicList.size-1)
-                                dismiss.dismiss()
-                            }
-                            1->{
-                                val infoLayout =
-                                    LayoutInflater.from(context).inflate(R.layout.song_information, null)
-                                val name = infoLayout.findViewById<TextView>(R.id.songTitleName)
-                                val songDuration = infoLayout.findViewById<TextView>(R.id.songDuration)
-                                val location = infoLayout.findViewById<TextView>(R.id.songLocation)
-
-                                val alert = AlertDialog.Builder(context)
-                                alert.setView(infoLayout)
-                                name.text = name.text.toString() + "\n" + songName.text
-                                songDuration.text = songDuration.text.toString() + "\n" + duration.text
-                                location.text = location.text.toString() + "\n" + pathSong
-                                alert.setPositiveButton("Ok"){d, _->
-                                    d.dismiss()
-                                    dismiss.dismiss()
-                                }
-                                alert.show()
-
-                            }
-                        }
-                    }
+                    val customDialog = LayoutInflater.from(context).inflate(R.layout.song_information, null)
+                    val deleteButton:MaterialButton=customDialog.findViewById(R.id.onPressDelete)
+                    val informationButton:MaterialButton=customDialog.findViewById(R.id.onPressInformation)
+                    val dialog = MaterialAlertDialogBuilder(context)
+                        .setView(customDialog)
+                        .create()
                     dialog.show()
+                    dialog.window?.setBackgroundDrawable(ColorDrawable(0x99000000.toInt()))
+                    deleteButton.setOnClickListener {
+                        musicList.removeAt(position)
+                        Snackbar.make(root, "Removed successfully", 1000).show()
+                        notifyItemRangeChanged(0, musicList.size-1)
+                        dialog.dismiss()
+                    }
+
+                    informationButton.setOnClickListener {
+                        dialog.dismiss()
+                        val detailsDialogLayout = LayoutInflater.from(context).inflate(R.layout.details_view, null)
+                        val detailsTextView = detailsDialogLayout.findViewById<TextView>(R.id.detailsTextView)
+                        detailsTextView.setTextColor(Color.WHITE)
+                        val detailsDialog = MaterialAlertDialogBuilder(context)
+                            .setBackground(ColorDrawable(0x99000000.toInt()))
+                            .setView(detailsDialogLayout)
+                            .setPositiveButton("OK"){d, _ -> d.dismiss()}
+                            .setCancelable(false)
+                            .create()
+
+                        detailsDialog.show()
+                        detailsDialog.window?.setBackgroundDrawable(ColorDrawable(0x99000000.toInt()))
+                        detailsDialog.getButton(AlertDialog.BUTTON_POSITIVE).setBackgroundColor(Color.GREEN)
+                        val string = SpannableStringBuilder().bold { append("Song details\n\nName: ") }
+                            .append(musicList[position].title)
+                            .bold { append("\n\nDuration: ") }.append(DateUtils.formatElapsedTime(musicList[position].duration/1000))
+                            .bold { append("\n\nLocation: ") }.append(musicList[position].path)
+                        detailsTextView.text = string
+
+                    }
+
                     true
 
                 }
@@ -117,7 +122,7 @@ class MusicRecyclerAdapter(
                     root.setOnClickListener {
                         when (musicList[position].id) {
                             PlayerActivity.currentPlayingID -> {
-                                sendIntent("currentPlaying", pos = position)
+                                sendIntent("currentPlaying", pos = PlayerActivity.songPosition)
                             }
                             else -> sendIntent(className = "PlaylistDetails", pos = position)
                         }
@@ -126,10 +131,10 @@ class MusicRecyclerAdapter(
                 selectionActivity -> {
                     root.setOnClickListener {
                         if (addSongToPlaylist(musicList[position])) {
-                            itemView.setBackgroundColor(
+                            root.setBackgroundColor(
                                 ContextCompat.getColor(
                                     context,
-                                    R.color.purple_200
+                                    R.color.green
                                 )
                             )
                             countSelected += 1
@@ -137,7 +142,7 @@ class MusicRecyclerAdapter(
                                 countSelected.toString()
 
                         } else {
-                            itemView.setBackgroundColor(
+                            root.setBackgroundColor(
                                 ContextCompat.getColor(
                                     context,
                                     R.color.white
@@ -150,7 +155,7 @@ class MusicRecyclerAdapter(
                     root.setOnClickListener {
                         when (musicList[position].id) {
                             PlayerActivity.currentPlayingID -> {
-                                sendIntent("currentPlaying", pos = position)
+                                sendIntent("currentPlaying", pos = PlayerActivity.songPosition)
                             }
                             else -> {
                                 sendIntent("MusicRecyclerAdapter", pos = position)

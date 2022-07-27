@@ -21,6 +21,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -51,6 +53,7 @@ class MainActivity : AppCompatActivity() {
             MediaStore.Audio.Media.SIZE + " DESC",
             MediaStore.Audio.Media.DATE_ADDED + " DESC"
         )
+        lateinit var currentPlayingFrag:FragmentContainerView
 
     }
 
@@ -67,6 +70,7 @@ class MainActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recyclerView)
         navigationView = findViewById(R.id.navigationView)
         drawer = findViewById(R.id.drawer)
+        currentPlayingFrag = findViewById(R.id.currentPlaying)
         toggle = ActionBarDrawerToggle(this@MainActivity, drawer, R.string.open, R.string.close)
         drawer.addDrawerListener(toggle)
         toggle.syncState()
@@ -132,6 +136,7 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
     }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (toggle.onOptionsItemSelected(item)) {

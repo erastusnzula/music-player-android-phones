@@ -33,6 +33,7 @@ class FavouriteAdapter(private var context: Context, private var musicList: Arra
         private val favoriteSongName: TextView = itemView.findViewById(R.id.favouriteSingleSongName)
         private val favouriteArtist: TextView = itemView.findViewById(R.id.favouriteArtist)
         private val favouriteSongDuration: TextView = itemView.findViewById(R.id.favouriteSongDuration)
+        private val root:View = itemView.rootView
 
         fun bind(position: Int) {
             favoriteSongName.text = musicList[position].title
@@ -40,12 +41,12 @@ class FavouriteAdapter(private var context: Context, private var musicList: Arra
             favouriteSongDuration.text = formatDuration(musicList[position].duration)
             Glide.with(context)
                 .load(musicList[position].art)
-                .apply(RequestOptions().placeholder(R.drawable.music))
+                .apply(RequestOptions().placeholder(R.drawable.custom_icon))
                 .into(favouriteImageView)
-            itemView.setOnClickListener {
+            root.setOnClickListener {
                 when(musicList[position].id){
                     PlayerActivity.currentPlayingID->{
-                        sendIntent(className = "currentPlaying",pos=position)
+                        sendIntent(className = "currentPlaying",pos=PlayerActivity.songPosition)
                     }else->{
                         sendIntent(className = "FavouriteAdapter", pos=position)
                     }

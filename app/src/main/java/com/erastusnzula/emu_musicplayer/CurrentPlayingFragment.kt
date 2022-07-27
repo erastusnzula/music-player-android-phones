@@ -42,7 +42,7 @@ class CurrentPlayingFragment : Fragment() {
         currentSong=view.findViewById(R.id.currentPlayingTextView)
         constrainedLayout=view.findViewById(R.id.currentPlayingConstrained)
         currentPlayingImageView=view.findViewById(R.id.currentPlayingImageView)
-        constrainedLayout.visibility = View.INVISIBLE
+        MainActivity.currentPlayingFrag.visibility = View.INVISIBLE
 
         playButtonF.setOnClickListener { playPauseControl() }
         nextButtonF.setOnClickListener {  playNext()}
@@ -60,14 +60,14 @@ class CurrentPlayingFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if(PlayerActivity.musicService != null){
-            constrainedLayout.visibility = View.VISIBLE
+            MainActivity.currentPlayingFrag.visibility  = View.VISIBLE
             currentSong.isSelected = true
             Glide.with(requireContext())
                 .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
                 .apply(RequestOptions().placeholder(R.drawable.custom_icon).centerCrop())
                 .into(currentPlayingImageView)
             currentSong.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
-            if(PlayerActivity.isPlaying) playButtonF.setBackgroundResource(R.drawable.ic_baseline_pause_24)
+            if(PlayerActivity.isPlaying) playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
             else playButtonF.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
         }
     }
