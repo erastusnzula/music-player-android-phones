@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity() {
             musicList=getAllAudioFiles()
             adapter.updateMusicList(musicList)
         }
-        if(PlayerActivity.musicService != null) CurrentPlayingFragment.constrainedLayout.visibility = View.VISIBLE
+        if(PlayerActivity.musicService != null) currentPlayingFrag.visibility = View.VISIBLE
     }
 
 

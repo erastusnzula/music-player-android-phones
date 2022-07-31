@@ -5,16 +5,18 @@ import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var version: Button
     private lateinit var sortSongs: Button
-    private lateinit var changeTheme : Button
     private lateinit var leaveFeedback: Button
+    private lateinit var purpleBlueTheme: LinearLayout
+    private lateinit var tealWhiteTheme: LinearLayout
+    private lateinit var blueWhiteTheme: LinearLayout
+    private lateinit var blackWhiteTheme: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,19 +26,24 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar?.title="Settings"
         version = findViewById(R.id.version)
         sortSongs = findViewById(R.id.songsOrder)
-        changeTheme = findViewById(R.id.changeTheme)
         leaveFeedback=findViewById(R.id.settingFeedbackBtn)
 
+        purpleBlueTheme = findViewById(R.id.purpleBlueTheme)
+        tealWhiteTheme = findViewById(R.id.tealWhiteTheme)
+        blackWhiteTheme = findViewById(R.id.blackWhiteTheme)
+        blueWhiteTheme = findViewById(R.id.blueTheme)
+
+
         sortSongs.setOnClickListener { arrangeSongsInOrder() }
-        changeTheme.setOnClickListener {  }
         leaveFeedback.setOnClickListener {
             startActivity(Intent(this, FeedbackActivity::class.java))
         }
-
-
         version.text = setVersion()
 
-
+        blueWhiteTheme.setOnClickListener { changeTheme() }
+        blackWhiteTheme.setOnClickListener { changeTheme() }
+        tealWhiteTheme.setOnClickListener { changeTheme() }
+        purpleBlueTheme.setOnClickListener { changeTheme() }
     }
 
     private fun arrangeSongsInOrder() {
@@ -49,8 +56,9 @@ class SettingsActivity : AppCompatActivity() {
             editor.putInt("sortOrder", currentOrder)
             editor.apply()
             dialogDismiss.dismiss()
-            finish()
-            startActivity(Intent(this, MainActivity::class.java))
+            Toast.makeText(this, "song rearranged successfully.", Toast.LENGTH_LONG).show()
+            //finish()
+            //startActivity(Intent(this, MainActivity::class.java))
         }
         dialog.setSingleChoiceItems(itemList,currentOrder){_,which->
             currentOrder=which
@@ -71,5 +79,19 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setVersion(): String {
         return "Version : ${BuildConfig.VERSION_NAME}"
+    }
+
+    private fun changeTheme(){
+        val themeDialog = MaterialAlertDialogBuilder(this)
+            .setTitle("Themes")
+            .setMessage("Theme change functionality coming soon.")
+            .setPositiveButton("Ok"){dismiss,_->
+                dismiss.dismiss()
+            }
+            .create()
+        themeDialog.show()
+        themeDialog.setIcon(R.drawable.custom_icon)
+        themeDialog.setCancelable(false)
+        themeDialog.getButton(AlertDialog.BUTTON_POSITIVE).setBackgroundColor(Color.GREEN)
     }
 }

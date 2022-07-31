@@ -34,12 +34,15 @@ class NotificationBroadCast:BroadcastReceiver() {
     }
 
     private fun playSong(){
-        PlayerActivity.isPlaying=true
-        PlayerActivity.musicService!!.mediaPlayer!!.start()
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
-        PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
         try {
-            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+            PlayerActivity.isPlaying = true
+            PlayerActivity.musicService!!.mediaPlayer!!.start()
+            PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
+            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
+            try {
+                CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+            } catch (e: Exception) {
+            }
         }catch (e:Exception){}
     }
 

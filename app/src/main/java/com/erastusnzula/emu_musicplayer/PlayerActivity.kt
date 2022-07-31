@@ -418,12 +418,15 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
     }
 
     private fun playSong() {
-        isPlaying = true
-        musicService!!.mediaPlayer!!.start()
-        activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
         try {
-            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+            isPlaying = true
+            musicService!!.mediaPlayer!!.start()
+            activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
+            musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
+            try {
+                CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+            } catch (e: Exception) {
+            }
         }catch (e:Exception){}
     }
 
@@ -455,15 +458,17 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
 
 
     private fun shuffle() {
-        if (!isShuffle) {
-            isShuffle = true
-            shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.orange))
-            isLooping = false
-            repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_24)
-        } else {
-            isShuffle = false
-            shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.purple_500))
-        }
+        try {
+            if (!isShuffle) {
+                isShuffle = true
+                shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.orange))
+                isLooping = false
+                repeatImageButton.setImageResource(R.drawable.ic_baseline_repeat_24)
+            } else {
+                isShuffle = false
+                shuffleButton.setColorFilter(ContextCompat.getColor(this, R.color.purple_500))
+            }
+        }catch (e:Exception){}
     }
 
     private fun repeatControl() {
@@ -572,7 +577,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             } catch (e: Exception) {
             }
         } catch (e: Exception) {
-            startActivity(Intent(this, MainActivity::class.java))
+
         }
     }
 

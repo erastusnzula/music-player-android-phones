@@ -22,6 +22,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import java.lang.Exception
 
 class MusicRecyclerAdapter(
     private val context: Context,
@@ -82,10 +83,15 @@ class MusicRecyclerAdapter(
                     dialog.show()
                     dialog.window?.setBackgroundDrawable(ColorDrawable(0x99000000.toInt()))
                     deleteButton.setOnClickListener {
-                        musicList.removeAt(position)
-                        Snackbar.make(root, "Removed successfully", 1000).show()
-                        notifyItemRangeChanged(0, musicList.size-1)
-                        dialog.dismiss()
+                        try {
+                            musicList.removeAt(position)
+                            Snackbar.make(root, "Removed successfully", 1000).show()
+                            //notifyItemRangeChanged(0, musicList.size+1)
+                            notifyDataSetChanged()
+                            dialog.dismiss()
+                        }catch (e:Exception){
+
+                        }
                     }
 
                     informationButton.setOnClickListener {

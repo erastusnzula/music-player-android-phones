@@ -17,7 +17,7 @@ class ApplicationClass: Application() {
     override fun onCreate() {
         super.onCreate()
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            val notificationChannel = NotificationChannel(CHANNEL_ID,"Emu-Player",NotificationManager.IMPORTANCE_HIGH)
+            val notificationChannel = NotificationChannel(CHANNEL_ID,"emu music player",NotificationManager.IMPORTANCE_HIGH)
             notificationChannel.description="Makes the player controls accessible via the notification bar."
             val notificationManager=getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(notificationChannel)

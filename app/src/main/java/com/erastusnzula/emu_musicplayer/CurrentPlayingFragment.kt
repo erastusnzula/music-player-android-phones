@@ -73,15 +73,17 @@ class CurrentPlayingFragment : Fragment() {
     }
 
     private fun playNext() {
-        Glide.with(requireContext())
-            .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
-            .apply(RequestOptions().placeholder(R.drawable.custom_icon).centerCrop())
-            .into(currentPlayingImageView)
-        setSongPosition(increment = true)
-        currentSong.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
-        PlayerActivity.musicService!!.serviceCreateMediaPlayer()
-        playSong()
+        try {
+            Glide.with(requireContext())
+                .load(PlayerActivity.musicList[PlayerActivity.songPosition].art)
+                .apply(RequestOptions().placeholder(R.drawable.custom_icon).centerCrop())
+                .into(currentPlayingImageView)
+            setSongPosition(increment = true)
+            currentSong.text = PlayerActivity.musicList[PlayerActivity.songPosition].title
+            PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
+            PlayerActivity.musicService!!.serviceCreateMediaPlayer()
+            playSong()
+        }catch (e: Exception){}
     }
 
     private fun playPauseControl() {
@@ -93,19 +95,23 @@ class CurrentPlayingFragment : Fragment() {
     }
 
     private fun playSong() {
-        PlayerActivity.isPlaying = true
-        PlayerActivity.musicService!!.mediaPlayer!!.start()
-        PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
-        playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+        try {
+            PlayerActivity.isPlaying = true
+            PlayerActivity.musicService!!.mediaPlayer!!.start()
+            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
+            PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_pause_24)
+            playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+        }catch (e:Exception){playNext()}
     }
 
     private fun pauseSong() {
-        PlayerActivity.isPlaying = false
-        PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
-        PlayerActivity.musicService!!.mediaPlayer!!.pause()
-        PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_play_circle_filled_24)
-        playButtonF.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
+        try {
+            PlayerActivity.isPlaying = false
+            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
+            PlayerActivity.musicService!!.mediaPlayer!!.pause()
+            PlayerActivity.musicService!!.showNotification(R.drawable.ic_baseline_play_circle_filled_24)
+            playButtonF.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
+        }catch (e:Exception){}
     }
 }
 

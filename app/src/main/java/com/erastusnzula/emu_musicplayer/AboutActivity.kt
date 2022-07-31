@@ -36,6 +36,6 @@ class AboutActivity : AppCompatActivity() {
 
     private fun aboutText(): String {
         return "Developed by Erastus Nzula" +
-                "\n\nYour feedback will be highly appreciated."
+                "\n\nYour feedback and suggestions will be highly appreciated."
     }
 }

@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +22,7 @@ class FavouriteActivity : AppCompatActivity() {
     }
     private lateinit var favouriteRecyclerView: RecyclerView
     private lateinit var favouriteFloatingButton: Button
+    private lateinit var favouriteInstructions: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +32,7 @@ class FavouriteActivity : AppCompatActivity() {
         supportActionBar?.title = "Favourite Songs"
         favouriteRecyclerView = findViewById(R.id.favouriteRecyclerView)
         favouriteFloatingButton=findViewById(R.id.favouriteFloatingActionButton)
+        favouriteInstructions=findViewById(R.id.favouriteInstructions)
         favouriteRecyclerView.setItemViewCacheSize(20)
         favouriteRecyclerView.setHasFixedSize(true)
         favouriteSongsList= checkSongPath(songs = favouriteSongsList)
@@ -38,6 +41,7 @@ class FavouriteActivity : AppCompatActivity() {
         favouriteRecyclerView.adapter = FavouriteAdapter(this, favouriteSongsList)
         favouriteRecyclerView.layoutManager =LinearLayoutManager(this)
         if (favouriteSongsList.size <1) favouriteFloatingButton.visibility= View.INVISIBLE
+        if(favouriteSongsList.isNotEmpty()) favouriteInstructions.visibility=View.GONE
         favouriteFloatingButton.setOnClickListener {
             val intent = Intent(this, PlayerActivity::class.java)
             intent.putExtra("index", 0)
