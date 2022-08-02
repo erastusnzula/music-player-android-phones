@@ -15,7 +15,9 @@ and active player screen.
 ### Main screen
 The main screen is the display screen that appears immediately after launching the app. The screen consist
 of a navigation and menu button (three dots in the top right corner) that leads to the navigation panel and menu items respectively.
+
 ![main](assets/main.png)
+
 #### Navigation panel features
 
 | Feature    | Functionality                  |
@@ -36,6 +38,7 @@ of a navigation and menu button (three dots in the top right corner) that leads 
 ### Active player screen
 Active player screen is the display screen that appears immediately after clicking a song to play from the 
 main screen.
+
 ![active](assets/active.png)
 
 | Feature        | Functionality                                  |
