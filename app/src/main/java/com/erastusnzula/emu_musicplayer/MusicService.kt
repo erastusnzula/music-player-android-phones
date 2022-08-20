@@ -200,13 +200,14 @@ class MusicService : Service(), AudioManager.OnAudioFocusChangeListener {
             showNotification(R.drawable.ic_baseline_play_circle_filled_24)
             CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
 
-        } else {
-            PlayerActivity.isPlaying = true
-            mediaPlayer!!.start()
-            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
-            showNotification(R.drawable.ic_baseline_pause_24)
-            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
-        }
+     }
+ //       else {
+//            PlayerActivity.isPlaying = true
+//            mediaPlayer!!.start()
+//            PlayerActivity.activePlayButton.setImageResource(R.drawable.ic_baseline_pause_24)
+//            showNotification(R.drawable.ic_baseline_pause_24)
+//            CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_pause_24)
+//        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
