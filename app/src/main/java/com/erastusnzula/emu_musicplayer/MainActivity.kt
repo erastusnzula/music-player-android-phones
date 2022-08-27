@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
             R.id.refresh -> {
                 setupInitialization()
             }
-            R.id.app_bar_search -> {}
+            //R.id.app_bar_search -> {}
         }
         return super.onOptionsItemSelected(item)
     }

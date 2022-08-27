@@ -161,6 +161,7 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                     isFavourite = false
                     favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite_borderless)
                     FavouriteActivity.favouriteSongsList.remove(musicList[songPosition])
+                    Toast.makeText(this, "successfully removed from favourites", Toast.LENGTH_SHORT).show()
                 } else {
                     isFavourite = true
                     favouriteImageButton.setImageResource(R.drawable.ic_active_player_favourite)
