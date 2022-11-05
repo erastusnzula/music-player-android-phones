@@ -165,7 +165,7 @@ class MainActivity : AppCompatActivity() {
             super.onBackPressed()
             finish()
         } else {
-            Snackbar.make(drawer, "Press back again to exit", Toast.LENGTH_SHORT).show()
+            Snackbar.make(drawer, "Press back again to exit", Snackbar.LENGTH_SHORT).show()
         }
         exitDelay = System.currentTimeMillis()
     }
