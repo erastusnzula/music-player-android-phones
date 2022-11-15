@@ -9,45 +9,56 @@
     <Button
         android:id="@+id/version"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="24dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:text="Version : "
         android:textAllCaps="false"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/settingFeedbackBtn"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_weight="1" />
 
     <Button
         android:id="@+id/songsOrder"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:text="Rearrange songs"
         android:textAllCaps="false"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout10"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/settingFeedbackBtn" />
+        app:layout_constraintTop_toBottomOf="@+id/settingFeedbackBtn"
+        app:layout_constraintVertical_weight="1" />
 
     <Button
         android:id="@+id/settingFeedbackBtn"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:text="Leave feedback"
         android:textAllCaps="false"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/songsOrder"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/version" />
+        app:layout_constraintTop_toBottomOf="@+id/version"
+        app:layout_constraintVertical_weight="1" />
 
     <LinearLayout
         android:id="@+id/linearLayout10"
@@ -56,11 +67,14 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="24dp"
         android:background="@color/white"
         android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/songsOrder">
+        app:layout_constraintTop_toBottomOf="@+id/songsOrder"
+        app:layout_constraintVertical_weight=".5">
 
         <TextView
             android:id="@+id/textView9"

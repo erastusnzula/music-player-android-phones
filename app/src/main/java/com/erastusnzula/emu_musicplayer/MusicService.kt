@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -28,6 +29,8 @@ class MusicService : Service(), AudioManager.OnAudioFocusChangeListener {
     private lateinit var mediaSession: MediaSessionCompat
     lateinit var audioManager: AudioManager
     private lateinit var runnable: Runnable
+    lateinit var audioBecomingNoisy:BecomingNoisy
+    lateinit var intentFilter: IntentFilter
 
     override fun onBind(intent: Intent?): IBinder {
         mediaSession = MediaSessionCompat(baseContext, "My Music")
@@ -175,6 +178,8 @@ class MusicService : Service(), AudioManager.OnAudioFocusChangeListener {
             PlayerActivity.seekBar.max = mediaPlayer!!.duration
             PlayerActivity.currentPlayingID =
                 PlayerActivity.musicList[PlayerActivity.songPosition].id
+//            audioBecomingNoisy = BecomingNoisy()
+//            intentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
 
         } catch (e: Exception) {
             return

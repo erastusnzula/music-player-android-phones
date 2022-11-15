@@ -1,10 +1,7 @@
 package com.erastusnzula.emu_musicplayer
 
 import android.annotation.SuppressLint
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.database.Cursor
@@ -86,13 +83,12 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
     private lateinit var shareImageButton: ImageButton
     private var directPlay=false
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(R.style.Theme_EMUMusicPlayer)
         setContentView(R.layout.activity_player)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Current playing"
+        supportActionBar?.title = "Current song"
         activeAlbum = findViewById(R.id.activeSongAlbumImageView)
         albumLayout = findViewById(R.id.activeAlbumPictureLayout)
         activePlayButton = findViewById(R.id.ActivePlayImageButton)
@@ -208,9 +204,12 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
                 AudioManager.AUDIOFOCUS_GAIN
             )
         }
+        musicService!!.audioBecomingNoisy = BecomingNoisy()
+        musicService!!.intentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
         createMediaPlayer()
         musicService!!.runnableSeekBar()
         isPlayerActive = true
+
 
     }
 
@@ -402,6 +401,8 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             seekBar.max = musicService!!.mediaPlayer!!.duration
             musicService!!.mediaPlayer!!.setOnCompletionListener(this)
             currentPlayingID = musicList[songPosition].id
+//            musicService!!.audioBecomingNoisy = BecomingNoisy()
+//            musicService!!.intentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
             playSong()
 
         } catch (e: Exception) {
@@ -429,6 +430,10 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
             } catch (e: Exception) {
             }
         }catch (e:Exception){}
+        try{
+            registerReceiver(musicService!!.audioBecomingNoisy, musicService!!.intentFilter)
+        }catch (e:Exception){}
+
     }
 
     private fun pauseSong() {
@@ -439,6 +444,10 @@ class PlayerActivity : AppCompatActivity(), ServiceConnection, MediaPlayer.OnCom
         try {
             CurrentPlayingFragment.playButtonF.setImageResource(R.drawable.ic_baseline_play_circle_filled_24)
         }catch (e:Exception){}
+        try{
+            unregisterReceiver(musicService!!.audioBecomingNoisy)
+        }catch(e:Exception){}
+
     }
 
     private fun playNextSong(increment: Boolean) {

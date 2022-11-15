@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_main)
-        supportActionBar?.title = "songs"
+        supportActionBar?.title = "Songs"
         recyclerView = findViewById(R.id.recyclerView)
         navigationView = findViewById(R.id.navigationView)
         drawer = findViewById(R.id.drawer)

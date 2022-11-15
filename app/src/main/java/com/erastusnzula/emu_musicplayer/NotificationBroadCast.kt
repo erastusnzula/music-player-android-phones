@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
 import android.widget.Toast
@@ -29,6 +30,10 @@ class NotificationBroadCast:BroadcastReceiver() {
             }
             ApplicationClass.EXIT-> {
                 exitProtocol()
+            }
+            AudioManager.ACTION_AUDIO_BECOMING_NOISY->{
+                Toast.makeText(context, "becoming noisy", Toast.LENGTH_SHORT).show()
+                pauseSong()
             }
         }
     }
